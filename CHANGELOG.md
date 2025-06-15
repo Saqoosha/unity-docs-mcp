@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-06-15
+
+### Added
+- Automatic property/method type detection from search index
+- Type information display in search results [property], [method], [class], [constructor]
+- Type-aware URL construction for optimized requests
+- Support for Unity property documentation with hyphen notation
+
+### Fixed
+- Property documentation fetching (e.g., ContactPoint2D.otherRigidbody)
+- Eliminated unnecessary 404 errors for properties
+
+### Improved
+- 50% reduction in HTTP requests with direct URL construction
+- Search results now include member type information
+- More accurate documentation retrieval for all Unity member types
+
 ## [0.2.0] - 2025-06-15
 
 ### Added

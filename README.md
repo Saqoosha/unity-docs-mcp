@@ -421,7 +421,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
-### v0.2.0 (Latest)
+### v0.2.1 (Latest)
+- Added automatic property/method type detection
+- Search results now show type information [property], [method], [class], [constructor]
+- Optimized URL construction to use correct format on first try
+- Fixed property documentation fetching (e.g., ContactPoint2D.otherRigidbody)
+- Reduced HTTP requests by 50% with type-aware URL patterns
+
+### v0.2.0
 - Implemented local search index for fast, reliable search
 - Added search index caching with configurable expiration
 - Fixed Unity documentation formatting issues (brackets, UI elements)
