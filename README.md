@@ -144,8 +144,22 @@ Add the following to your Claude Desktop configuration file:
 You can also run the server directly:
 
 ```bash
+# After installation, shows startup information
+unity-docs-mcp
+# 🚀 Unity Docs MCP Server v0.2.1
+# 📚 Supporting Unity versions 2019.1 - 6000.2
+# 💾 Advanced caching enabled (6h API + 24h search index)
+# 🔌 Starting MCP server...
+
+# Or direct execution
 python src/unity_docs_mcp/server.py
 ```
+
+**Startup Features:**
+- Displays current server version (from package metadata)
+- Shows supported Unity version range (dynamically fetched)
+- Confirms caching features are enabled
+- All information updates automatically
 
 ## Usage
 

@@ -26,8 +26,13 @@ pip install -e .
 
 **Running the Server**:
 ```bash
-# Via entry point (after installation)
+# Via entry point (after installation) - shows startup info
 unity-docs-mcp
+# Output:
+# 🚀 Unity Docs MCP Server v0.2.1
+# 📚 Supporting Unity versions 2019.1 - 6000.2
+# 💾 Advanced caching enabled (6h API + 24h search index)
+# 🔌 Starting MCP server...
 
 # Direct module execution
 python -m unity_docs_mcp.server
@@ -246,10 +251,27 @@ The MCP server implements a comprehensive caching strategy to minimize web reque
 └── api_availability_cache.pkl   # API availability results
 ```
 
+### Startup Information
+
+The server displays helpful information on startup (via stderr, safe for MCP protocol):
+
+```
+🚀 Unity Docs MCP Server v0.2.1              # From __init__.py __version__
+📚 Supporting Unity versions 2019.1 - 6000.2  # Dynamically fetched from Unity
+💾 Advanced caching enabled (6h API + 24h search index)
+🔌 Starting MCP server...
+```
+
+**Version Information:**
+- **Server Version**: Automatically reads from `src/unity_docs_mcp/__init__.py`
+- **Unity Versions**: Dynamically fetched from Unity's official version list
+- **No Hardcoding**: All version information updates automatically
+
 ### Important Notes
 
 - Always activate virtual environment before development
 - MCP Inspector runs on ports 6274 (UI) and 6277 (proxy)  
 - Update docs after significant changes to remember what was done
 - All new version-related features are fully tested
+- Startup messages appear in Claude Desktop logs for debugging
 - See ARCHITECTURE.md for complete technical details
