@@ -36,6 +36,21 @@ class TestUnityDocScraper(unittest.TestCase):
         expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.Instantiate.html"
         self.assertEqual(url, expected)
     
+    def test_build_api_url_with_hyphen(self):
+        """Test building API URL with hyphen notation for properties."""
+        url = self.scraper._build_api_url("GameObject", "transform", "6000.0", use_hyphen=True)
+        expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject-transform.html"
+        self.assertEqual(url, expected)
+    
+    def test_build_api_url_dot_vs_hyphen(self):
+        """Test that dot and hyphen notations produce different URLs."""
+        dot_url = self.scraper._build_api_url("ContactPoint2D", "otherRigidbody", "6000.0", use_hyphen=False)
+        hyphen_url = self.scraper._build_api_url("ContactPoint2D", "otherRigidbody", "6000.0", use_hyphen=True)
+        
+        self.assertIn("ContactPoint2D.otherRigidbody.html", dot_url)
+        self.assertIn("ContactPoint2D-otherRigidbody.html", hyphen_url)
+        self.assertNotEqual(dot_url, hyphen_url)
+    
     def test_build_search_url(self):
         """Test building search URL."""
         url = self.scraper._build_search_url("transform", "6000.0")
@@ -171,6 +186,25 @@ class TestUnityDocScraper(unittest.TestCase):
         
         self.assertEqual(result["status"], "error")
         self.assertIn("error", result)
+    
+    @patch('unity_docs_mcp.scraper.UnityDocScraper._fetch_page')
+    def test_get_api_doc_property_fallback(self, mock_fetch):
+        """Test that properties fall back to hyphen notation when dot notation fails."""
+        # First call (dot notation) returns None, second call (hyphen notation) returns content
+        mock_fetch.side_effect = [None, "<html>Property content</html>"]
+        
+        result = self.scraper.get_api_doc("ContactPoint2D", "otherRigidbody", "6000.0")
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["html"], "<html>Property content</html>")
+        self.assertIn("ContactPoint2D-otherRigidbody.html", result["url"])
+        
+        # Verify both URL patterns were tried
+        self.assertEqual(mock_fetch.call_count, 2)
+        first_call_url = mock_fetch.call_args_list[0][0][0]
+        second_call_url = mock_fetch.call_args_list[1][0][0]
+        self.assertIn("ContactPoint2D.otherRigidbody.html", first_call_url)
+        self.assertIn("ContactPoint2D-otherRigidbody.html", second_call_url)
     
     @patch('unity_docs_mcp.scraper.UnityDocScraper._fetch_page')
     def test_get_api_doc_exception(self, mock_fetch):

@@ -177,6 +177,65 @@ class UnitySearchIndex:
             # Clear memory cache
             self._memory_cache.clear()
     
+    def _detect_member_type(self, url_name: str) -> str:
+        """Detect whether a Unity documentation entry is a property, method, or class.
+        
+        Args:
+            url_name: The URL component (e.g., 'GameObject-transform', 'GameObject.SetActive')
+        
+        Returns:
+            One of: 'property', 'method', 'constructor', 'class'
+        """
+        # Special case: constructors
+        if '-ctor' in url_name:
+            return 'constructor'
+        
+        # Hyphen indicates property (or event/delegate which we treat as property)
+        if '-' in url_name:
+            return 'property'
+        
+        # No dots or hyphens = simple class
+        if '.' not in url_name:
+            return 'class'
+        
+        # Has dots - distinguish between methods and nested classes
+        parts = url_name.split('.')
+        
+        # Known nested class patterns (namespaces)
+        namespace_patterns = [
+            'UnityEngine', 'UnityEditor', 'Unity', 'System', 
+            'EditorSettings', 'PlayerSettings', 'BuildSettings'
+        ]
+        
+        # Check if it's a namespace.Class pattern
+        if len(parts) == 2:
+            # If first part is a known namespace and second part starts with uppercase
+            if parts[0] in namespace_patterns and parts[1] and parts[1][0].isupper():
+                return 'class'
+            
+            # If both parts start with uppercase, could be nested class
+            # But most likely it's a method if second part is a common method name
+            if all(p and p[0].isupper() for p in parts):
+                # Common method name patterns
+                method_patterns = [
+                    'Get', 'Set', 'Add', 'Remove', 'Clear', 'Contains',
+                    'Find', 'Load', 'Save', 'Create', 'Delete', 'Update',
+                    'Is', 'Has', 'Can', 'Should', 'Try', 'Move', 'Rotate',
+                    'Transform', 'Convert', 'Parse', 'ToString', 'Equals'
+                ]
+                
+                # Check if second part starts with a method pattern
+                second_part = parts[1]
+                for pattern in method_patterns:
+                    if second_part.startswith(pattern):
+                        return 'method'
+                
+                # Default to class for other uppercase patterns
+                return 'class'
+        
+        # Three or more parts, or single uppercase after dot = method
+        return 'method'
+    
     def search(self, query: str, version: str = "6000.0", max_results: int = 20) -> List[Dict[str, str]]:
         """Search Unity documentation using the loaded index."""
         if not self._loaded or version not in [key.split('_')[1] for key in self._memory_cache.keys()]:
@@ -230,13 +289,17 @@ class UnitySearchIndex:
                 page_title = self.pages[page_idx][1] if len(self.pages[page_idx]) > 1 else page_name
                 page_description = self.page_info[page_idx][0] if self.page_info[page_idx] else ""
                 
+                # Detect member type
+                member_type = self._detect_member_type(page_name)
+                
                 # Build URL
                 url = f"https://docs.unity3d.com/{version}/Documentation/ScriptReference/{page_name}.html"
                 
                 results.append({
                     'title': page_title,
                     'url': url,
-                    'description': page_description[:200] + '...' if len(page_description) > 200 else page_description
+                    'description': page_description[:200] + '...' if len(page_description) > 200 else page_description,
+                    'type': member_type
                 })
         
         return results

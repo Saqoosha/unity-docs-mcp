@@ -51,7 +51,9 @@ class UnityDocScraper:
     - search_docs(query, version)  # Now uses search_index
     - suggest_class_names(partial)  # Uses search_index
     - URL patterns:
-      - API: https://docs.unity3d.com/{version}/Documentation/ScriptReference/{Class}.{method}.html
+      - Methods: https://docs.unity3d.com/{version}/Documentation/ScriptReference/{Class}.{method}.html
+      - Properties: https://docs.unity3d.com/{version}/Documentation/ScriptReference/{Class}-{property}.html
+      - Automatic fallback: Tries dot notation first, then hyphen for properties
 ```
 
 #### 3. **parser.py** - HTML Parser
@@ -145,6 +147,22 @@ feedback_text_patterns = [
 **解決策**: 正規表現でMarkdownリンクを除去
 ```python
 content = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', content)
+```
+
+### Problem 5: Property vs Method URL Patterns
+**症状**: `ContactPoint2D.otherRigidbody` returns 404 error
+
+**原因**: Unity uses different URL patterns for properties vs methods
+- Methods use dot notation: `GameObject.SetActive.html`
+- Properties use hyphen notation: `GameObject-transform.html`
+
+**解決策**: Automatic fallback mechanism
+```python
+# First try dot notation (for methods)
+url = build_api_url(class_name, method_name)  # GameObject.SetActive.html
+if not found and method_name:
+    # Try hyphen notation (for properties)
+    url = build_api_url(class_name, method_name, use_hyphen=True)  # GameObject-transform.html
 ```
 
 ## 🚀 Launch & Test
@@ -268,5 +286,6 @@ _remove_markdown_formatting() # Remove bold, links
 ### Test URL Examples
 - Class: `https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.html`
 - Method: `https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.SetActive.html`
+- Property: `https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject-transform.html`
 - Search Index: `https://docs.unity3d.com/6000.0/Documentation/ScriptReference/docdata/index.js`
 - ~~Search Page~~: `https://docs.unity3d.com/6000.0/Documentation/ScriptReference/30_search.html?q=transform` (Not used anymore)

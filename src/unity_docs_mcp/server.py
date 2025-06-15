@@ -184,6 +184,8 @@ class UnityDocsMCPServer:
         
         for i, res in enumerate(search_results[:10], 1):  # Show top 10 results
             content += f"## {i}. {res['title']}\n"
+            if res.get("type"):
+                content += f"**Type:** {res['type']}\n"
             if res.get("url"):
                 content += f"**URL:** {res['url']}\n"
             if res.get("description"):

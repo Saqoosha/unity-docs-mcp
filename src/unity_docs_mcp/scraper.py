@@ -21,11 +21,38 @@ class UnityDocScraper:
         self.last_request_time = 0
         self.search_index = UnitySearchIndex()
     
-    def get_api_doc(self, class_name: str, method_name: Optional[str] = None, version: str = "6000.0") -> Dict[str, str]:
-        """Fetch Unity API documentation for a specific class or method."""
+    def get_api_doc(self, class_name: str, method_name: Optional[str] = None, version: str = "6000.0", member_type: Optional[str] = None) -> Dict[str, str]:
+        """Fetch Unity API documentation for a specific class or method.
+        
+        Args:
+            class_name: The Unity class name
+            method_name: The method or property name (optional)
+            version: Unity version
+            member_type: Type hint ('property', 'method', 'constructor') to determine URL format
+        """
         try:
-            url = self._build_api_url(class_name, method_name, version)
-            html_content = self._fetch_page(url)
+            # Determine URL format based on member type
+            if method_name and member_type:
+                # Use type information to build correct URL immediately
+                use_hyphen = member_type in ['property', 'constructor']
+                url = self._build_api_url(class_name, method_name, version, use_hyphen=use_hyphen)
+                html_content = self._fetch_page(url)
+            elif method_name:
+                # No type info provided, try both formats (old behavior)
+                # First try with dot notation (for methods)
+                url = self._build_api_url(class_name, method_name, version)
+                html_content = self._fetch_page(url)
+                
+                # If that fails, try with hyphen notation (for properties)
+                if not html_content:
+                    property_url = self._build_api_url(class_name, method_name, version, use_hyphen=True)
+                    html_content = self._fetch_page(property_url)
+                    if html_content:
+                        url = property_url  # Update URL to the one that worked
+            else:
+                # Just a class name
+                url = self._build_api_url(class_name, None, version)
+                html_content = self._fetch_page(url)
             
             if html_content:
                 return {"url": url, "html": html_content, "status": "success"}
@@ -50,14 +77,24 @@ class UnityDocScraper:
         except Exception as e:
             return {"error": f"Error searching docs: {str(e)}", "status": "error"}
     
-    def _build_api_url(self, class_name: str, method_name: Optional[str], version: str) -> str:
-        """Build Unity API documentation URL."""
+    def _build_api_url(self, class_name: str, method_name: Optional[str], version: str, use_hyphen: bool = False) -> str:
+        """Build Unity API documentation URL.
+        
+        Args:
+            class_name: The Unity class name
+            method_name: The method or property name (optional)
+            version: Unity version
+            use_hyphen: If True, use hyphen notation (for properties), otherwise use dot notation (for methods)
+        """
         # Clean class name
         class_name = class_name.strip()
         
         if method_name:
             method_name = method_name.strip()
-            page_name = f"{class_name}.{method_name}.html"
+            if use_hyphen:
+                page_name = f"{class_name}-{method_name}.html"
+            else:
+                page_name = f"{class_name}.{method_name}.html"
         else:
             page_name = f"{class_name}.html"
         
