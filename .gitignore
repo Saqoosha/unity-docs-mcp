@@ -62,4 +62,14 @@ test_*.html
 *.tmp
 *.bak
 *~
-EOF < /dev/null
+
+# Temporary test files and experiments
+demo_test.py
+local_test.py
+test_minimal_server.py
+analyze_*.py
+verify_*.py
+*_demo.py
+*_analysis.py
+*.sample.json
+type_*.json
