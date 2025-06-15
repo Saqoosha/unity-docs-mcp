@@ -5,6 +5,9 @@ import re
 from typing import Optional, Dict, List
 from urllib.parse import urljoin, quote
 import time
+import os
+import pickle
+from datetime import datetime, timedelta
 from .search_index import UnitySearchIndex
 
 
@@ -20,6 +23,12 @@ class UnityDocScraper:
         self.rate_limit_delay = 0.5  # seconds between requests
         self.last_request_time = 0
         self.search_index = UnitySearchIndex()
+        
+        # API availability cache
+        self._api_cache = {}
+        self.cache_duration = timedelta(hours=6)  # Cache for 6 hours
+        self.cache_dir = os.path.join(os.path.expanduser("~"), ".unity_docs_mcp", "cache")
+        os.makedirs(self.cache_dir, exist_ok=True)
     
     def get_api_doc(self, class_name: str, method_name: Optional[str] = None, version: str = "6000.0", member_type: Optional[str] = None) -> Dict[str, str]:
         """Fetch Unity API documentation for a specific class or method.
@@ -265,6 +274,38 @@ class UnityDocScraper:
         normalized_version = self.normalize_version(version)
         return normalized_version in self.get_supported_versions()
     
+    def _get_api_cache_path(self) -> str:
+        """Get cache file path for API availability data."""
+        return os.path.join(self.cache_dir, "api_availability_cache.pkl")
+    
+    def _load_api_cache(self) -> None:
+        """Load API availability cache from file."""
+        cache_path = self._get_api_cache_path()
+        if os.path.exists(cache_path):
+            try:
+                cache_time = datetime.fromtimestamp(os.path.getmtime(cache_path))
+                if datetime.now() - cache_time < self.cache_duration:
+                    with open(cache_path, 'rb') as f:
+                        self._api_cache = pickle.load(f)
+            except Exception as e:
+                print(f"Error loading API cache: {e}")
+                self._api_cache = {}
+    
+    def _save_api_cache(self) -> None:
+        """Save API availability cache to file."""
+        cache_path = self._get_api_cache_path()
+        try:
+            with open(cache_path, 'wb') as f:
+                pickle.dump(self._api_cache, f)
+        except Exception as e:
+            print(f"Error saving API cache: {e}")
+    
+    def _get_cache_key(self, class_name: str, method_name: Optional[str] = None) -> str:
+        """Generate cache key for API availability check."""
+        if method_name:
+            return f"{class_name}.{method_name}"
+        return class_name
+
     def suggest_class_names(self, partial_name: str) -> List[str]:
         """Suggest Unity class names based on partial input using search index."""
         # Try to use search index first
@@ -292,6 +333,7 @@ class UnityDocScraper:
     
     def check_api_availability_across_versions(self, class_name: str, method_name: Optional[str] = None) -> Dict[str, List[str]]:
         """Check which Unity versions have the specified API by making HTTP requests.
+        Uses caching to avoid repeated requests for the same API.
         
         Args:
             class_name: The Unity class name
@@ -300,6 +342,15 @@ class UnityDocScraper:
         Returns:
             Dictionary with 'available' and 'unavailable' version lists
         """
+        # Load cache if not already loaded
+        if not self._api_cache:
+            self._load_api_cache()
+        
+        # Check cache first
+        cache_key = self._get_cache_key(class_name, method_name)
+        if cache_key in self._api_cache:
+            return self._api_cache[cache_key]
+        
         available_versions = []
         unavailable_versions = []
         
@@ -323,7 +374,12 @@ class UnityDocScraper:
                 # Rate limiting
                 time.sleep(0.2)
         
-        return {
+        # Cache the result
+        result = {
             "available": available_versions,
             "unavailable": unavailable_versions
         }
+        self._api_cache[cache_key] = result
+        self._save_api_cache()
+        
+        return result
