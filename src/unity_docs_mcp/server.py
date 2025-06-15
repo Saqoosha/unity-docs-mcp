@@ -315,8 +315,15 @@ async def main():
     """Main entry point."""
     # Print startup info to stderr (stdout is reserved for MCP protocol)
     import sys
-    print("🚀 Unity Docs MCP Server v0.2.1", file=sys.stderr)
-    print("📚 Supporting Unity versions 2019.4 - 6000.2", file=sys.stderr)
+    from . import __version__
+    
+    # Get actual supported Unity versions
+    scraper = UnityDocScraper()
+    supported_versions = scraper.get_supported_versions()
+    version_range = f"{supported_versions[-1]} - {supported_versions[0]}" if supported_versions else "Unknown"
+    
+    print(f"🚀 Unity Docs MCP Server v{__version__}", file=sys.stderr)
+    print(f"📚 Supporting Unity versions {version_range}", file=sys.stderr)
     print("💾 Advanced caching enabled (6h API + 24h search index)", file=sys.stderr)
     print("🔌 Starting MCP server...", file=sys.stderr)
     print("", file=sys.stderr)  # Empty line
