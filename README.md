@@ -13,8 +13,8 @@ A Model Context Protocol (MCP) server that provides Unity documentation retrieva
 - 🧠 **Smart Suggestions**: Get class name suggestions based on partial input
 - 📝 **Clean Markdown Output**: Formatted markdown with Unity-specific formatting issues resolved
 - ⚡ **Rate Limited**: Respectful web scraping with built-in rate limiting
-- 💾 **Intelligent Caching**: Search index caching for improved performance
-- 🧪 **Well Tested**: Comprehensive unit and integration tests (45 total tests)
+- 💾 **Advanced Caching**: Multi-level caching system with 6-hour API availability cache
+- 🧪 **Well Tested**: Comprehensive unit and integration tests (88 total tests)
 
 ## Quick Start
 
