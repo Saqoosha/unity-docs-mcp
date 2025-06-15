@@ -256,11 +256,18 @@ class UnityDocsMCPServer:
             content += f"**Version:** {version}\n"
             
         content += f"**Results:** {result.get('count', len(search_results))} found\n\n"
+        content += "💡 **Tip:** For detailed documentation with our advanced caching, use `get_unity_api_doc` with the exact class name from results below.\n\n"
         
         for i, res in enumerate(search_results[:10], 1):  # Show top 10 results
             content += f"## {i}. {res['title']}\n"
             if res.get("type"):
                 content += f"**Type:** {res['type']}\n"
+            
+            # Extract class name for get_unity_api_doc suggestion
+            title = res.get('title', '')
+            if res.get("type") == "class" and '.' in title:
+                content += f"**📋 Use:** `get_unity_api_doc(class_name: \"{title}\", version: \"{version}\")`\n"
+            
             if res.get("url"):
                 content += f"**URL:** {res['url']}\n"
             if res.get("description"):
