@@ -313,6 +313,14 @@ class UnityDocsMCPServer:
 
 async def main():
     """Main entry point."""
+    # Print startup info to stderr (stdout is reserved for MCP protocol)
+    import sys
+    print("🚀 Unity Docs MCP Server v0.2.1", file=sys.stderr)
+    print("📚 Supporting Unity versions 2019.4 - 6000.2", file=sys.stderr)
+    print("💾 Advanced caching enabled (6h API + 24h search index)", file=sys.stderr)
+    print("🔌 Starting MCP server...", file=sys.stderr)
+    print("", file=sys.stderr)  # Empty line
+    
     server = UnityDocsMCPServer()
     await server.run()
 
