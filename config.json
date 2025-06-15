@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "unity-docs": {
+      "command": "/Users/hiko/Desktop/unity-docs-mcp/venv/bin/python",
+      "args": ["-m", "unity_docs_mcp.server"],
+      "cwd": "/Users/hiko/Desktop/unity-docs-mcp",
+      "env": {
+        "PYTHONPATH": "/Users/hiko/Desktop/unity-docs-mcp/src"
+      }
+    }
+  }
+}

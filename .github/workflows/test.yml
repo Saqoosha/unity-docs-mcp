@@ -1,0 +1,82 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        uv venv --python ${{ matrix.python-version }}
+        uv pip install -r requirements.txt
+        uv pip install -r requirements-dev.txt
+    
+    - name: Validate project structure  
+      run: |
+        source .venv/bin/activate
+        python validate_structure.py
+    
+    - name: Run tests
+      run: |
+        source .venv/bin/activate
+        python -m unittest discover tests -v
+    
+    - name: Test package installation
+      run: |
+        source .venv/bin/activate
+        uv pip install -e .
+        python -c "import unity_docs_mcp; print('Package imports successfully')"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+    
+    - name: Set up Python
+      run: uv python install 3.11
+    
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv pip install -r requirements-dev.txt
+    
+    - name: Check code formatting with black
+      run: |
+        source .venv/bin/activate
+        black --check --diff src/ tests/
+    
+    - name: Lint with flake8
+      run: |
+        source .venv/bin/activate
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Type check with mypy
+      run: |
+        source .venv/bin/activate
+        mypy src/unity_docs_mcp/ --ignore-missing-imports
+      continue-on-error: true  # mypy can be strict, don't fail the build
