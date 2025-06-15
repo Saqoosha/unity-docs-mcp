@@ -304,6 +304,7 @@ class UnitySearchIndex:
         
         return results
     
+    
     def suggest_classes(self, partial_name: str, max_results: int = 10) -> List[str]:
         """Suggest Unity class names based on partial input."""
         if not self._loaded:

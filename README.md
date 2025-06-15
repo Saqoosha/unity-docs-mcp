@@ -5,13 +5,16 @@ A Model Context Protocol (MCP) server that provides Unity documentation retrieva
 ## Features
 
 - 🔍 **Fast Local Search**: Search Unity documentation using a local index - no JavaScript execution needed
-- 📖 **API Documentation Retrieval**: Get detailed API documentation for Unity classes and methods
-- 🔄 **Multiple Unity Versions**: Support for multiple Unity versions (6000.0, 2023.3, 2022.1, etc.)
+- 📖 **API Documentation Retrieval**: Get detailed API documentation for Unity classes and methods  
+- 🔄 **Smart Version Handling**: Automatic version normalization and latest version detection
+- 🎯 **Version Accuracy**: Strict version-specific results with helpful availability context
+- 🚀 **Auto-Latest Detection**: Automatically uses Unity's latest version when none specified
+- 🔧 **Full Version Support**: Accepts complete Unity versions like `6000.0.29f1`, `2022.3.45a1`
 - 🧠 **Smart Suggestions**: Get class name suggestions based on partial input
 - 📝 **Clean Markdown Output**: Formatted markdown with Unity-specific formatting issues resolved
 - ⚡ **Rate Limited**: Respectful web scraping with built-in rate limiting
 - 💾 **Intelligent Caching**: Search index caching for improved performance
-- 🧪 **Well Tested**: Comprehensive unit and integration tests
+- 🧪 **Well Tested**: Comprehensive unit and integration tests (45 total tests)
 
 ## Quick Start
 
@@ -156,13 +159,14 @@ Retrieve documentation for a specific Unity class or method:
 get_unity_api_doc:
 - class_name: "GameObject" (required)
 - method_name: "Instantiate" (optional)
-- version: "6000.0" (optional, defaults to "6000.0")
+- version: "6000.0" (optional, auto-detects latest if not specified)
 ```
 
 **Examples:**
-- Get GameObject class documentation: `class_name: "GameObject"`
+- Get latest Unity docs: `class_name: "GameObject"` (auto-detects Unity 6.1)
 - Get specific method: `class_name: "GameObject", method_name: "Instantiate"`
-- Get for specific Unity version: `class_name: "Transform", version: "2023.3"`
+- Use full version: `class_name: "Transform", version: "2022.3.45f1"` (normalizes to 2022.3)
+- Version-specific docs: `class_name: "AsyncGPUReadback", version: "2019.4"` (shows availability info if not found)
 
 ### 2. Search Unity Documentation
 
@@ -171,13 +175,13 @@ Search through Unity documentation:
 ```
 search_unity_docs:
 - query: "rigidbody physics" (required)
-- version: "6000.0" (optional, defaults to "6000.0")
+- version: "6000.0" (optional, auto-detects latest if not specified)
 ```
 
 **Examples:**
-- Search for physics: `query: "rigidbody physics"`
+- Search latest Unity: `query: "rigidbody physics"` (uses Unity 6.1 automatically)
 - Search UI components: `query: "button UI canvas"`
-- Search specific version: `query: "transform", version: "2023.3"`
+- Search with full version: `query: "transform", version: "2021.3.12a1"` (normalizes to 2021.3)
 
 ### 3. List Unity Versions
 
@@ -202,15 +206,27 @@ suggest_unity_classes:
 
 ## Supported Unity Versions
 
-Currently supported Unity versions:
-- 6000.0 (Unity 6)
-- 2023.3 (LTS)
-- 2023.2
-- 2023.1
-- 2022.3 (LTS)
-- 2022.2
-- 2022.1
-- 2021.3 (LTS)
+The MCP server supports all major Unity versions with intelligent version handling:
+
+### Version Format Support
+- **Latest Auto-Detection**: When no version specified, automatically uses Unity's latest (currently 6.1)
+- **Full Version Normalization**: `6000.0.29f1` → `6000.0`, `2022.3.45a1` → `2022.3`
+- **All Release Types**: Supports alpha (`a`), beta (`b`), final (`f`), and patch versions
+
+### Supported Version Ranges
+Dynamically fetched from Unity's official version info (auto-updated):
+- **6000.x** (Unity 6.2 Beta, 6.1, 6.0)
+- **2023.x** (2023.2, 2023.1)  
+- **2022.x** (2022.3 LTS, 2022.2, 2022.1)
+- **2021.x** (2021.3 LTS, 2021.2, 2021.1)
+- **2020.x** (2020.3, 2020.2, 2020.1)
+- **2019.x** (2019.4)
+
+### Enhanced Error Handling
+When an API is not found in the requested version, the server provides:
+- **Available Versions**: Lists exactly which versions contain the API
+- **Upgrade Guidance**: Specific version recommendations
+- **Context Information**: Clear explanation of version compatibility
 
 ## Architecture
 
@@ -270,16 +286,31 @@ unity-docs-mcp/
 
 ### Running Tests
 
+The project includes comprehensive unit tests (45 total) covering all functionality:
+
 ```bash
 # Run all tests with coverage
 python run_tests.py
+
+# Run specific test modules
+python tests/test_scraper.py          # Core scraper functionality (41 tests)
+python tests/test_version_features.py # Version handling features (11 tests)
 
 # Run specific test file
 python -m unittest tests.test_parser
 
 # Run tests with pytest (if installed)
-pytest tests/
+pytest tests/ --cov=src/unity_docs_mcp --cov-report=html
 ```
+
+### Test Coverage Areas
+- **Version Normalization**: Full Unity version format support
+- **Dynamic Version Detection**: Latest Unity version auto-detection
+- **Dynamic Version List**: Unity's official version list fetching with fallback
+- **API Availability Checking**: Cross-version API existence verification
+- **Error Handling**: Comprehensive error scenarios with version context
+- **Server Integration**: End-to-end MCP server functionality
+- **Mock Network Calls**: All external Unity API calls are mocked for reliability
 
 ### Code Quality
 
@@ -421,7 +452,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
-### v0.2.1 (Latest)
+### v0.3.0 (Latest) - Smart Version Handling Update
+- **Dynamic Latest Version Detection**: Automatically detects and uses Unity's latest version when none specified
+- **Dynamic Version List**: Fetches supported Unity versions from Unity's official `UnityVersionsInfo.js`
+- **Full Version Normalization**: Supports complete Unity versions like `6000.0.29f1`, `2022.3.45a1` with automatic normalization
+- **Enhanced Error Handling**: When API not found, shows exactly which versions have it available
+- **Cross-Version API Checking**: Fast HEAD requests to determine API availability across major Unity versions
+- **Intelligent Defaults**: No version specified = latest Unity version (currently 6.1)
+- **Transparent Version Info**: Shows both original and normalized versions in responses
+- **Comprehensive Test Coverage**: Added 15 new unit tests for version handling features (45 total tests)
+- **Zero Maintenance**: Both latest version detection and supported version list require no manual updates
+
+### v0.2.1
 - Added automatic property/method type detection
 - Search results now show type information [property], [method], [class], [constructor]
 - Optimized URL construction to use correct format on first try

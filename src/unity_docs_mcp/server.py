@@ -50,9 +50,8 @@ class UnityDocsMCPServer:
                                 "description": "Optional method name (e.g., 'Instantiate', 'SetActive')"
                             },
                             "version": {
-                                "type": "string",
-                                "description": "Unity version (default: '6000.0')",
-                                "default": "6000.0"
+                                "type": "string", 
+                                "description": "Unity version (optional - defaults to latest available version if not specified)"
                             }
                         },
                         "required": ["class_name"]
@@ -70,8 +69,7 @@ class UnityDocsMCPServer:
                             },
                             "version": {
                                 "type": "string",
-                                "description": "Unity version (default: '6000.0')",
-                                "default": "6000.0"
+                                "description": "Unity version (optional - defaults to latest available version if not specified)"
                             }
                         },
                         "required": ["query"]
@@ -109,13 +107,13 @@ class UnityDocsMCPServer:
                 return await self._get_unity_api_doc(
                     arguments.get("class_name"),
                     arguments.get("method_name"),
-                    arguments.get("version", "6000.0")
+                    arguments.get("version")
                 )
             
             elif name == "search_unity_docs":
                 return await self._search_unity_docs(
                     arguments.get("query"),
-                    arguments.get("version", "6000.0")
+                    arguments.get("version")
                 )
             
             elif name == "list_unity_versions":
@@ -129,19 +127,69 @@ class UnityDocsMCPServer:
             else:
                 return [TextContent(type="text", text=f"Unknown tool: {name}")]
     
-    async def _get_unity_api_doc(self, class_name: str, method_name: str = None, version: str = "6000.0") -> list[TextContent]:
-        """Get Unity API documentation."""
+    async def _get_unity_api_doc(self, class_name: str, method_name: str = None, version: str = None) -> list[TextContent]:
+        """Get Unity API documentation for the specified version only."""
         if not class_name:
             return [TextContent(type="text", text="Error: class_name is required")]
         
+        # If no version specified, get latest dynamically
+        if version is None:
+            version = self.scraper.get_latest_version()
+        
+        # Store original version for display purposes
+        original_version = version
+        
+        # Validate version (this will automatically normalize it)
         if not self.scraper.validate_version(version):
-            return [TextContent(type="text", text=f"Error: Unsupported Unity version '{version}'. Supported versions: {', '.join(self.scraper.get_supported_versions())}")]
+            normalized = self.scraper.normalize_version(version)
+            if normalized != version:
+                return [TextContent(type="text", text=f"Error: Unsupported Unity version '{version}' (normalized to '{normalized}'). Supported versions: {', '.join(self.scraper.get_supported_versions())}")]
+            else:
+                return [TextContent(type="text", text=f"Error: Unsupported Unity version '{version}'. Supported versions: {', '.join(self.scraper.get_supported_versions())}")]
         
-        # Fetch the documentation
-        result = self.scraper.get_api_doc(class_name, method_name, version)
+        # Normalize version for API calls
+        version = self.scraper.normalize_version(version)
         
+        # Try to detect member type using search index if available
+        member_type = None
+        if method_name and hasattr(self.scraper, 'search_index'):
+            query = f"{class_name} {method_name}"
+            search_results = self.scraper.search_docs(query, version)
+            
+            if search_results.get("status") == "success" and search_results.get("results"):
+                # Look for exact match to get type info
+                for result in search_results["results"]:
+                    if (result.get("title") == f"{class_name}.{method_name}" or 
+                        result.get("title") == f"{class_name}-{method_name}"):
+                        member_type = result.get("type")
+                        break
+        
+        # Fetch the documentation for the exact version requested
+        result = self.scraper.get_api_doc(class_name, method_name, version, member_type=member_type)
+        
+        # If error, check availability across versions and provide helpful info
         if result.get("status") == "error":
-            return [TextContent(type="text", text=f"Error: {result.get('error')}")]
+            if method_name:
+                base_error = f"'{class_name}.{method_name}' not found in Unity {version} documentation."
+            else:
+                base_error = f"'{class_name}' not found in Unity {version} documentation."
+            
+            # Check availability across other versions
+            try:
+                version_info = self.scraper.check_api_availability_across_versions(class_name, method_name)
+                
+                if version_info["available"]:
+                    error_msg = f"{base_error}\n\n**Available in versions:** {', '.join(version_info['available'])}"
+                    if version_info["unavailable"]:
+                        error_msg += f"\n**Not available in:** {', '.join(version_info['unavailable'])}"
+                else:
+                    error_msg = f"{base_error}\n\nThis API was not found in any tested Unity versions."
+                    
+            except Exception:
+                # Fallback to basic error if version checking fails
+                error_msg = base_error
+            
+            return [TextContent(type="text", text=error_msg)]
         
         # Parse the HTML content
         parsed_result = self.parser.parse_api_doc(result["html"], result["url"])
@@ -151,18 +199,39 @@ class UnityDocsMCPServer:
         
         # Format the response
         content = f"# {parsed_result['title']}\n\n"
-        content += f"Source: {parsed_result['url']}\n\n"
+        
+        # Show version info (including normalization if different)
+        if original_version != version:
+            content += f"**Unity Version:** {version} (normalized from {original_version})\n"
+        else:
+            content += f"**Unity Version:** {version}\n"
+            
+        content += f"**Source:** {parsed_result['url']}\n\n"
         content += parsed_result['content']
         
         return [TextContent(type="text", text=content)]
     
-    async def _search_unity_docs(self, query: str, version: str = "6000.0") -> list[TextContent]:
+    async def _search_unity_docs(self, query: str, version: str = None) -> list[TextContent]:
         """Search Unity documentation."""
         if not query:
             return [TextContent(type="text", text="Error: query is required")]
         
+        # If no version specified, get latest dynamically
+        if version is None:
+            version = self.scraper.get_latest_version()
+        
+        # Store original version for display purposes
+        original_version = version
+        
         if not self.scraper.validate_version(version):
-            return [TextContent(type="text", text=f"Error: Unsupported Unity version '{version}'. Supported versions: {', '.join(self.scraper.get_supported_versions())}")]
+            normalized = self.scraper.normalize_version(version)
+            if normalized != version:
+                return [TextContent(type="text", text=f"Error: Unsupported Unity version '{version}' (normalized to '{normalized}'). Supported versions: {', '.join(self.scraper.get_supported_versions())}")]
+            else:
+                return [TextContent(type="text", text=f"Error: Unsupported Unity version '{version}'. Supported versions: {', '.join(self.scraper.get_supported_versions())}")]
+        
+        # Normalize version for API calls
+        version = self.scraper.normalize_version(version)
         
         # Perform the search
         result = self.scraper.search_docs(query, version)
@@ -179,7 +248,13 @@ class UnityDocsMCPServer:
         # Format the response
         content = f"# Unity Documentation Search Results\n\n"
         content += f"**Query:** {query}\n"
-        content += f"**Version:** {version}\n"
+        
+        # Show version info (including normalization if different)
+        if original_version != version:
+            content += f"**Version:** {version} (normalized from {original_version})\n"
+        else:
+            content += f"**Version:** {version}\n"
+            
         content += f"**Results:** {result.get('count', len(search_results))} found\n\n"
         
         for i, res in enumerate(search_results[:10], 1):  # Show top 10 results
