@@ -315,7 +315,16 @@ async def main():
     """Main entry point."""
     # Print startup info to stderr (stdout is reserved for MCP protocol)
     import sys
+    import signal
     from . import __version__
+    
+    # Setup graceful shutdown
+    def signal_handler(signum, frame):
+        print("🛑 Shutting down Unity Docs MCP Server...", file=sys.stderr)
+        sys.exit(0)
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     
     # Get actual supported Unity versions
     scraper = UnityDocScraper()
@@ -328,13 +337,25 @@ async def main():
     print("🔌 Starting MCP server...", file=sys.stderr)
     print("", file=sys.stderr)  # Empty line
     
-    server = UnityDocsMCPServer()
-    await server.run()
+    try:
+        server = UnityDocsMCPServer()
+        await server.run()
+    except KeyboardInterrupt:
+        print("🛑 Shutting down Unity Docs MCP Server...", file=sys.stderr)
+    except Exception as e:
+        print(f"❌ Server error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def cli_main():
     """CLI entry point for setuptools."""
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        # Handle Ctrl+C at the top level to avoid stack trace
+        import sys
+        print("🛑 Shutting down Unity Docs MCP Server...", file=sys.stderr)
+        sys.exit(0)
 
 
 if __name__ == "__main__":

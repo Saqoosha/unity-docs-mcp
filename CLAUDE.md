@@ -260,9 +260,14 @@ The server displays helpful information on startup (via stderr, safe for MCP pro
 📚 Supporting Unity versions 2019.1 - 6000.2  # Dynamically fetched from Unity
 💾 Advanced caching enabled (6h API + 24h search index)
 🔌 Starting MCP server...
+
+# When stopping with Ctrl+C (graceful shutdown):
+🛑 Shutting down Unity Docs MCP Server...
 ```
 
-**Version Information:**
+**Server Features:**
+- **Graceful Shutdown**: Handles Ctrl+C (SIGINT) and SIGTERM signals cleanly
+- **No Stack Traces**: Signal trapping prevents ugly error output on exit
 - **Server Version**: Automatically reads from `src/unity_docs_mcp/__init__.py`
 - **Unity Versions**: Dynamically fetched from Unity's official version list
 - **No Hardcoding**: All version information updates automatically
