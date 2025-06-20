@@ -283,6 +283,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         from unity_docs_mcp.scraper import UnityDocScraper
+
         self.scraper = UnityDocScraper()
 
     def test_normalize_alpha_versions(self):
@@ -292,7 +293,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             ("2023.3.0a12", "2023.3"),
             ("2022.2.15a20", "2022.2"),
         ]
-        
+
         for input_version, expected in test_cases:
             with self.subTest(version=input_version):
                 result = self.scraper.normalize_version(input_version)
@@ -305,7 +306,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             ("2023.3.0b5", "2023.3"),
             ("2022.2.15b12", "2022.2"),
         ]
-        
+
         for input_version, expected in test_cases:
             with self.subTest(version=input_version):
                 result = self.scraper.normalize_version(input_version)
@@ -318,7 +319,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             ("2023.3.0rc2", "2023.3"),
             ("2022.2.15rc3", "2022.2"),
         ]
-        
+
         for input_version, expected in test_cases:
             with self.subTest(version=input_version):
                 result = self.scraper.normalize_version(input_version)
@@ -331,7 +332,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             ("2023.3.5p2", "2023.3"),
             ("2022.2.15p10", "2022.2"),
         ]
-        
+
         for input_version, expected in test_cases:
             with self.subTest(version=input_version):
                 result = self.scraper.normalize_version(input_version)
@@ -346,7 +347,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             ("2021.3(LTS)", "2021.3"),
             ("Unity 2020.3", "2020.3"),
         ]
-        
+
         for input_version, expected in test_cases:
             with self.subTest(version=input_version):
                 result = self.scraper.normalize_version(input_version)
@@ -361,7 +362,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             ("v6000.0", "6000.0"),  # v prefix
             ("6000.0final", "6000.0"),  # suffix without separator
         ]
-        
+
         for input_version, expected in test_cases:
             with self.subTest(version=input_version):
                 result = self.scraper.normalize_version(input_version)
@@ -380,7 +381,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             "   ",
             "!@#$",
         ]
-        
+
         for version in test_cases:
             with self.subTest(version=version):
                 result = self.scraper.normalize_version(version)
@@ -396,7 +397,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             "6000.0.1rc3",
             "6000.0.1p4",
         ]
-        
+
         for version in valid_cases:
             with self.subTest(version=version):
                 # Only test if 6000.0 is in supported versions
@@ -412,7 +413,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             ("6000.0\n", "6000.0"),
             ("2023.3\r\n", "2023.3"),
         ]
-        
+
         for input_version, expected in test_cases:
             with self.subTest(version=input_version):
                 result = self.scraper.normalize_version(input_version)
@@ -427,7 +428,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             ("2021.3.5P2", "2021.3"),
             ("2020.3.1RC1", "2020.3"),
         ]
-        
+
         for input_version, expected in test_cases:
             with self.subTest(version=input_version):
                 result = self.scraper.normalize_version(input_version)
@@ -454,7 +455,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
         mock_get.return_value = mock_response
 
         result = self.scraper.get_supported_versions()
-        
+
         # Should handle all variations correctly
         self.assertIn("6000.2", result)
         self.assertIn("6000.1", result)
@@ -472,7 +473,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             "6000.0",
             "6000.0.5p2",
         ]
-        
+
         # All should normalize to the same version
         normalized = [self.scraper.normalize_version(v) for v in versions]
         self.assertEqual(len(set(normalized)), 1)  # All should be "6000.0"
@@ -482,7 +483,7 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
         # Test empty string
         result = self.scraper.normalize_version("")
         self.assertEqual(result, "")
-        
+
         # Test None handling - normalize_version now handles None gracefully
         result = self.scraper.normalize_version(None)
         self.assertIsNone(result)

@@ -368,7 +368,7 @@ var searchIndex =
             set(),
         )
 
-        # Search for "gameobject setactive" 
+        # Search for "gameobject setactive"
         results = self.search_index.search("gameobject setactive")
 
         # With the current test data structure, this might not find results
@@ -378,7 +378,10 @@ var searchIndex =
             found_titles = [r["title"] for r in results]
             # At least one of the GameObject related items should be found
             self.assertTrue(
-                any("GameObject" in title or "SetActive" in title for title in found_titles)
+                any(
+                    "GameObject" in title or "SetActive" in title
+                    for title in found_titles
+                )
             )
 
 

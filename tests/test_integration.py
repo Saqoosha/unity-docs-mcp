@@ -210,7 +210,7 @@ class TestIntegration(unittest.TestCase):
     async def test_concurrent_api_requests(self, mock_get):
         """Test handling of concurrent API documentation requests."""
         import asyncio
-        
+
         # Mock responses for different classes
         responses = {
             "GameObject": "<html><h1>GameObject</h1><p>Base class</p></html>",
@@ -219,7 +219,7 @@ class TestIntegration(unittest.TestCase):
             "Camera": "<html><h1>Camera</h1><p>Camera component</p></html>",
             "Light": "<html><h1>Light</h1><p>Light component</p></html>",
         }
-        
+
         def mock_response(url, **kwargs):
             for class_name in responses:
                 if f"{class_name}.html" in url:
@@ -231,21 +231,21 @@ class TestIntegration(unittest.TestCase):
             mock_resp = Mock()
             mock_resp.status_code = 404
             return mock_resp
-        
+
         mock_get.side_effect = mock_response
-        
+
         # Create concurrent requests
         tasks = []
         for class_name in responses.keys():
             task = self.server._get_unity_api_doc(class_name, None, "6000.0")
             tasks.append(task)
-        
+
         # Run all tasks concurrently
         results = await asyncio.gather(*tasks)
-        
+
         # Verify all requests completed successfully
         self.assertEqual(len(results), len(responses))
-        
+
         # Verify each result contains the correct content
         for i, class_name in enumerate(responses.keys()):
             content = results[i][0].text
@@ -255,10 +255,10 @@ class TestIntegration(unittest.TestCase):
     async def test_concurrent_search_requests(self, mock_search):
         """Test handling of concurrent search requests."""
         import asyncio
-        
+
         # Mock different search results
         search_queries = ["transform", "physics", "ui", "render", "audio"]
-        
+
         def mock_search_func(query, version, **kwargs):
             # Return different results based on query
             return [
@@ -268,21 +268,21 @@ class TestIntegration(unittest.TestCase):
                     "description": f"Search result for {query}",
                 }
             ]
-        
+
         mock_search.side_effect = mock_search_func
-        
+
         # Create concurrent search requests
         tasks = []
         for query in search_queries:
             task = self.server._search_unity_docs(query, "6000.0")
             tasks.append(task)
-        
+
         # Run all tasks concurrently
         results = await asyncio.gather(*tasks)
-        
+
         # Verify all searches completed
         self.assertEqual(len(results), len(search_queries))
-        
+
         # Verify each result contains the correct query
         for i, query in enumerate(search_queries):
             content = results[i][0].text
@@ -291,9 +291,11 @@ class TestIntegration(unittest.TestCase):
     async def test_mixed_concurrent_requests(self):
         """Test handling of mixed concurrent API and search requests."""
         import asyncio
-        
+
         with patch("unity_docs_mcp.scraper.UnityDocScraper._fetch_page") as mock_fetch:
-            with patch("unity_docs_mcp.search_index.UnitySearchIndex.search") as mock_search:
+            with patch(
+                "unity_docs_mcp.search_index.UnitySearchIndex.search"
+            ) as mock_search:
                 # Mock responses
                 mock_fetch.return_value = "<html><h1>API Doc</h1></html>"
                 mock_search.return_value = [
@@ -303,7 +305,7 @@ class TestIntegration(unittest.TestCase):
                         "description": "Test",
                     }
                 ]
-                
+
                 # Create mixed requests
                 tasks = [
                     self.server._get_unity_api_doc("GameObject", None, "6000.0"),
@@ -312,17 +314,17 @@ class TestIntegration(unittest.TestCase):
                     self.server._search_unity_docs("physics", "6000.0"),
                     self.server._get_unity_api_doc("Rigidbody", None, "6000.0"),
                 ]
-                
+
                 # Run all tasks concurrently
                 results = await asyncio.gather(*tasks)
-                
+
                 # Verify all requests completed
                 self.assertEqual(len(results), 5)
-                
+
                 # Verify mix of API and search results
                 api_count = sum(1 for r in results if "API Doc" in r[0].text)
                 search_count = sum(1 for r in results if "Search Results" in r[0].text)
-                
+
                 self.assertEqual(api_count, 3)  # 3 API doc requests
                 self.assertEqual(search_count, 2)  # 2 search requests
 
@@ -332,43 +334,43 @@ class TestIntegration(unittest.TestCase):
         """Test that rate limiting works correctly with concurrent requests."""
         import asyncio
         import time
-        
+
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "<html>Content</html>"
         mock_get.return_value = mock_response
-        
+
         # Track actual request times
         request_times = []
-        
+
         def track_request(*args, **kwargs):
             request_times.append(time.time())
             return mock_response
-        
+
         mock_get.side_effect = track_request
-        
+
         # Create multiple concurrent requests
         tasks = []
         for i in range(5):
             task = self.server._get_unity_api_doc(f"Class{i}", None, "6000.0")
             tasks.append(task)
-        
+
         # Run all tasks concurrently
         start_time = time.time()
         await asyncio.gather(*tasks)
         total_time = time.time() - start_time
-        
+
         # With rate limiting and concurrency, total time depends on implementation
         # Just verify that rate limiting was applied
         self.assertGreater(total_time, 0.1)  # Should take some time
-        
+
         # Verify sleep was called for rate limiting
         self.assertGreater(mock_sleep.call_count, 0)
 
     async def test_concurrent_error_handling(self):
         """Test error handling in concurrent requests."""
         import asyncio
-        
+
         with patch("unity_docs_mcp.scraper.UnityDocScraper._fetch_page") as mock_fetch:
             # Some requests succeed, some fail
             responses = [
@@ -379,23 +381,31 @@ class TestIntegration(unittest.TestCase):
                 "<html><h1>Success</h1></html>",
             ]
             mock_fetch.side_effect = responses
-            
+
             # Create concurrent requests
             tasks = []
             for i in range(5):
                 task = self.server._get_unity_api_doc(f"Class{i}", None, "6000.0")
                 tasks.append(task)
-            
+
             # Run all tasks - should not raise exceptions
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             # Verify all requests completed (some with errors)
             self.assertEqual(len(results), 5)
-            
+
             # Count successes and failures
-            success_count = sum(1 for r in results if not isinstance(r, Exception) and "Success" in r[0].text)
-            error_count = sum(1 for r in results if not isinstance(r, Exception) and "not found" in r[0].text)
-            
+            success_count = sum(
+                1
+                for r in results
+                if not isinstance(r, Exception) and "Success" in r[0].text
+            )
+            error_count = sum(
+                1
+                for r in results
+                if not isinstance(r, Exception) and "not found" in r[0].text
+            )
+
             self.assertEqual(success_count, 3)
             self.assertEqual(error_count, 2)
 
@@ -403,27 +413,27 @@ class TestIntegration(unittest.TestCase):
     async def test_concurrent_version_handling(self, mock_get):
         """Test concurrent requests with different Unity versions."""
         import asyncio
-        
+
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "<html><h1>GameObject</h1></html>"
         mock_get.return_value = mock_response
-        
+
         # Different versions (some need normalization)
         versions = ["6000.0", "6000.0.29f1", "2022.3", "2022.3.45f1", "2021.3.12a1"]
-        
+
         # Create concurrent requests with different versions
         tasks = []
         for version in versions:
             task = self.server._get_unity_api_doc("GameObject", None, version)
             tasks.append(task)
-        
+
         # Run all tasks concurrently
         results = await asyncio.gather(*tasks)
-        
+
         # Verify all requests completed
         self.assertEqual(len(results), len(versions))
-        
+
         # Verify version normalization info in results
         for i, (version, result) in enumerate(zip(versions, results)):
             content = result[0].text
@@ -434,10 +444,10 @@ class TestIntegration(unittest.TestCase):
     async def test_stress_test_many_concurrent_requests(self):
         """Stress test with many concurrent requests."""
         import asyncio
-        
+
         with patch("unity_docs_mcp.scraper.UnityDocScraper._fetch_page") as mock_fetch:
             mock_fetch.return_value = "<html><h1>Test</h1></html>"
-            
+
             # Create many concurrent requests
             num_requests = 50
             tasks = []
@@ -447,13 +457,13 @@ class TestIntegration(unittest.TestCase):
                 else:
                     task = self.server._search_unity_docs(f"query{i}", "6000.0")
                 tasks.append(task)
-            
+
             # Run all tasks concurrently
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             # Verify all requests completed without crashing
             self.assertEqual(len(results), num_requests)
-            
+
             # Verify no exceptions were raised
             exceptions = [r for r in results if isinstance(r, Exception)]
             self.assertEqual(len(exceptions), 0)

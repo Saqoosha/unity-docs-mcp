@@ -345,16 +345,16 @@ class UnityDocScraper:
         """
         if not version:
             return version
-        
+
         # Strip whitespace
         version = version.strip()
-        
+
         # Remove common prefixes
         if version.lower().startswith("unity "):
             version = version[6:]
         elif version.lower().startswith("v"):
             version = version[1:]
-        
+
         # Extract major.minor from version string using regex
         # Matches: 6000.0.29f1, 2022.3.45a1, 2021.3.12b2, etc.
         match = re.match(r"^(\d+\.\d+)", version)

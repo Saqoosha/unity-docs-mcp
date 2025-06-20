@@ -177,11 +177,11 @@ class TestUnityDocScraper(unittest.TestCase):
 
         result = self.scraper._fetch_page("https://example.com")
         self.assertIsNone(result)
-        
+
         # Verify timeout was passed in request
         mock_get.assert_called_once()
         call_kwargs = mock_get.call_args[1]
-        self.assertEqual(call_kwargs['timeout'], 30)
+        self.assertEqual(call_kwargs["timeout"], 30)
 
     @patch("unity_docs_mcp.scraper.requests.Session.get")
     def test_fetch_page_connection_error(self, mock_get):
@@ -232,10 +232,10 @@ class TestUnityDocScraper(unittest.TestCase):
     def test_check_api_availability_timeout_handling(self, mock_head):
         """Test API availability check with timeouts."""
         import requests
-        
+
         # Create a list to track calls
         call_count = 0
-        
+
         def mock_head_func(*args, **kwargs):
             nonlocal call_count
             call_count += 1
@@ -245,11 +245,11 @@ class TestUnityDocScraper(unittest.TestCase):
                 return mock_response
             else:  # Even calls timeout
                 raise requests.exceptions.Timeout("Timeout")
-        
+
         mock_head.side_effect = mock_head_func
 
         result = self.scraper.check_api_availability_across_versions("GameObject")
-        
+
         # Should have some available and some unavailable due to timeouts
         # The exact counts depend on which versions are validated
         self.assertIn("available", result)
@@ -268,7 +268,7 @@ class TestUnityDocScraper(unittest.TestCase):
         mock_get.return_value = mock_response
 
         result = self.scraper.get_supported_versions()
-        
+
         # Should fallback to hardcoded list
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
@@ -284,7 +284,7 @@ class TestUnityDocScraper(unittest.TestCase):
         mock_get.return_value = mock_response
 
         result = self.scraper.get_latest_version()
-        
+
         # Should fallback to first supported version
         expected = self.scraper.get_supported_versions()[0]
         self.assertEqual(result, expected)
@@ -295,40 +295,44 @@ class TestUnityDocScraper(unittest.TestCase):
         """Test that concurrent requests are properly rate limited."""
         import threading
         import time
-        
+
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "content"
         mock_get.return_value = mock_response
-        
+
         # Track request times
         request_times = []
         request_lock = threading.Lock()
-        
+
         def track_time(*args, **kwargs):
             with request_lock:
                 request_times.append(time.time())
             return mock_response
-        
+
         mock_get.side_effect = track_time
-        
+
         # Reset last request time to ensure first request doesn't wait
         self.scraper.last_request_time = 0
-        
+
         # Make multiple requests in threads
         threads = []
         for i in range(3):
-            t = threading.Thread(target=lambda idx=i: self.scraper._fetch_page(f"https://example.com/{idx}"))
+            t = threading.Thread(
+                target=lambda idx=i: self.scraper._fetch_page(
+                    f"https://example.com/{idx}"
+                )
+            )
             threads.append(t)
             t.start()
-        
+
         # Wait for all threads
         for t in threads:
             t.join()
-        
+
         # Should have made 3 requests
         self.assertEqual(len(request_times), 3)
-        
+
         # Sleep should have been called for rate limiting
         self.assertGreater(mock_sleep.call_count, 0)
 

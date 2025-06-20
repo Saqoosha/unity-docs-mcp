@@ -221,7 +221,7 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         mock_parser_class.return_value = mock_parser
 
         mock_scraper.validate_version.return_value = True
-        mock_scraper.normalize_version.return_value = "6000.0" 
+        mock_scraper.normalize_version.return_value = "6000.0"
         mock_scraper.search_docs.return_value = {
             "status": "success",
             "results": [],

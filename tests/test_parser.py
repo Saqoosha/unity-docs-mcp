@@ -108,7 +108,7 @@ public static Object Instantiate(Object original);
 
         self.assertIn("results", result)
         self.assertIn("count", result)
-        # Count might be different based on HTML structure  
+        # Count might be different based on HTML structure
         self.assertGreaterEqual(result["count"], 2)
 
         results = result["results"]
@@ -118,12 +118,13 @@ public static Object Instantiate(Object original);
         titles = [r["title"] for r in results]
         self.assertIn("Transform", titles)
         self.assertIn("GameObject", titles)
-        
+
         # Check URLs are properly formatted
         for result in results:
             if result.get("url"):
                 self.assertTrue(
-                    "Transform.html" in result["url"] or "GameObject.html" in result["url"]
+                    "Transform.html" in result["url"]
+                    or "GameObject.html" in result["url"]
                 )
 
     def test_parse_search_results_empty(self):
@@ -192,7 +193,7 @@ More content
 
         # Should remove empty code blocks
         self.assertNotIn("```\n\n```", cleaned)
-        
+
         # Basic structure should be preserved
         self.assertIn("# Title", cleaned)
         self.assertIn("Content here", cleaned)
@@ -235,19 +236,19 @@ More content
             </div>
         </body>
         """  # Missing closing tags
-        
+
         url = "https://docs.unity3d.com/test.html"
         result = self.parser.parse_api_doc(malformed_html, url)
-        
+
         # Should still parse without errors
         self.assertIn("title", result)
         self.assertIn("content", result)
         self.assertEqual(result["title"], "GameObject")
-        
+
         # Content should be extracted despite malformed HTML
         self.assertIn("Unclosed paragraph", result["content"])
         self.assertIn("Missing closing tags", result["content"])
-        
+
         # Scripts should still be removed
         self.assertNotIn("alert", result["content"])
 
@@ -255,9 +256,9 @@ More content
         """Test parser handles empty HTML gracefully."""
         empty_html = ""
         url = "https://docs.unity3d.com/test.html"
-        
+
         result = self.parser.parse_api_doc(empty_html, url)
-        
+
         # Should return minimal valid result
         self.assertIn("title", result)
         self.assertIn("content", result)
@@ -278,15 +279,15 @@ More content
         </body>
         </html>
         """
-        
+
         url = "https://docs.unity3d.com/test.html"
         result = self.parser.parse_api_doc(huge_html, url)
-        
+
         # Should parse without memory issues
         self.assertIn("title", result)
         self.assertIn("content", result)
         self.assertEqual(result["title"], "Large Document")
-        
+
         # Content should be present but potentially truncated by trafilatura
         self.assertIn("Large content block", result["content"])
 
@@ -305,19 +306,19 @@ More content
         </body>
         </html>
         """
-        
+
         url = "https://docs.unity3d.com/test.html"
         result = self.parser.parse_api_doc(html_with_special, url)
-        
+
         # Check that content exists - trafilatura might process special chars differently
         self.assertIn("Special chars", result["content"])
         self.assertIn("Unicode", result["content"])
-        
+
         # Unicode should be preserved
         self.assertIn("你好", result["content"])
         self.assertIn("مرحبا", result["content"])
         self.assertIn("こんにちは", result["content"])
-        
+
         # Math symbols should be preserved
         self.assertIn("α", result["content"])
 
@@ -348,10 +349,10 @@ More content
         </body>
         </html>
         """
-        
+
         url = "https://docs.unity3d.com/test.html"
         result = self.parser.parse_api_doc(html_with_nested_ui, url)
-        
+
         # Trafilatura might not remove all UI elements - check that main content is present
         # The removal of specific UI elements depends on trafilatura's extraction
         self.assertIn("GameObject", result["content"])
@@ -381,19 +382,22 @@ public class Player : MonoBehaviour
         </body>
         </html>
         """
-        
+
         url = "https://docs.unity3d.com/test.html"
         result = self.parser.parse_api_doc(html_with_code, url)
-        
+
         # Code blocks should be preserved
         self.assertIn("public class Player", result["content"])
         # Trafilatura might remove brackets from code - check for the content without brackets
-        self.assertTrue("[SerializeField]" in result["content"] or "SerializeField" in result["content"])
+        self.assertTrue(
+            "[SerializeField]" in result["content"]
+            or "SerializeField" in result["content"]
+        )
         self.assertIn("transform.position", result["content"])
-        
+
         # Comments in code should be preserved
         self.assertIn("// Move player", result["content"])
-        
+
         # Inline code should be preserved
         self.assertIn('GameObject.Find("Player")', result["content"])
 
@@ -429,10 +433,10 @@ public class Player : MonoBehaviour
         </body>
         </html>
         """
-        
+
         url = "https://docs.unity3d.com/test.html"
         result = self.parser.parse_api_doc(html_with_table, url)
-        
+
         # Table content should be present
         self.assertIn("Parameter", result["content"])
         self.assertIn("position", result["content"])
@@ -454,10 +458,10 @@ public class Player : MonoBehaviour
         </body>
         </html>
         """
-        
+
         url = "https://docs.unity3d.com/test.html"
         result = self.parser.parse_api_doc(html_no_content_div, url)
-        
+
         # Should still extract content from body
         self.assertIn("GameObject", result["content"])
         self.assertIn("This is documentation", result["content"])
@@ -477,13 +481,13 @@ public class Player : MonoBehaviour
         </body>
         </html>
         """
-        
+
         url = "https://docs.unity3d.com/test.html"
         result = self.parser.parse_api_doc(html_multiple_h1, url)
-        
+
         # Should use the first h1 as title
         self.assertEqual(result["title"], "First Title")
-        
+
         # Both h1s should be in content
         self.assertIn("First Title", result["content"])
         self.assertIn("Second Title", result["content"])
