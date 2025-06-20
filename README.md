@@ -48,6 +48,10 @@ source venv/bin/activate
 pip install -e .
 ```
 
+## Documentation
+
+For detailed documentation, see the [docs](docs/) directory.
+
 ## License
 
 MIT
