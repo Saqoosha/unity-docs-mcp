@@ -2,13 +2,32 @@
 
 A Model Context Protocol (MCP) server that provides Unity documentation retrieval capabilities. This server allows you to fetch Unity API documentation and search Unity docs directly through MCP-compatible clients.
 
-## Installation (Claude Desktop)
+## Installation
+
+### For Claude Code Users
 
 ```bash
 claude mcp add unity-docs -s user -- uvx --from git+https://github.com/Saqoosha/unity-docs-mcp unity-docs-mcp
 ```
 
-That's it! The Unity Docs MCP server is now available in Claude Desktop.
+### For Claude Desktop Users
+
+Add to your Claude Desktop configuration file:
+
+**Configuration file location:**
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "unity-docs": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/Saqoosha/unity-docs-mcp", "unity-docs-mcp"]
+    }
+  }
+}
+```
 
 ## Features
 
@@ -36,22 +55,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uvx --from git+https://github.com/Saqoosha/unity-docs-mcp unity-docs-mcp
 ```
 
-If you prefer manual configuration, add to your Claude Desktop config:
-
-```json
-{
-  "mcpServers": {
-    "unity-docs": {
-      "command": "uvx",
-      "args": ["--from", "git+https://github.com/Saqoosha/unity-docs-mcp", "unity-docs-mcp"]
-    }
-  }
-}
-```
-
-**Configuration File Locations:**
-- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%/Claude/claude_desktop_config.json`
 
 ## Installation
 
