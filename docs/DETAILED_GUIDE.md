@@ -41,7 +41,7 @@ Add to your Claude Desktop configuration file:
 - 📝 **Clean Markdown Output**: Formatted markdown with Unity-specific formatting issues resolved
 - ⚡ **Rate Limited**: Respectful web scraping with built-in rate limiting
 - 💾 **Advanced Caching**: Multi-level caching system with 6-hour API availability cache
-- 🧪 **Well Tested**: Comprehensive unit and integration tests (88 total tests)
+- 🧪 **Well Tested**: Comprehensive unit and integration tests (80 total tests)
 
 ## Alternative Installation Methods
 
@@ -309,7 +309,7 @@ unity-docs-mcp/
 
 ### Running Tests
 
-The project includes comprehensive unit tests (45 total) covering all functionality:
+The project includes comprehensive unit tests (80 total) covering all functionality:
 
 ```bash
 # Run all tests with coverage
@@ -483,7 +483,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Cross-Version API Checking**: Fast HEAD requests to determine API availability across major Unity versions
 - **Intelligent Defaults**: No version specified = latest Unity version (currently 6.1)
 - **Transparent Version Info**: Shows both original and normalized versions in responses
-- **Comprehensive Test Coverage**: Added 15 new unit tests for version handling features (45 total tests)
+- **Comprehensive Test Coverage**: 80 unit tests ensuring robust functionality
 - **Zero Maintenance**: Both latest version detection and supported version list require no manual updates
 
 ### v0.2.1

@@ -24,7 +24,7 @@ This documentation covers the Unity Docs MCP Server, which provides:
 - Fast local search capabilities
 - Version-specific documentation (2019.1 - 6000.2)
 - Advanced caching system
-- 88 comprehensive tests
+- 80 comprehensive tests
 
 For quick installation, see the [main README](../README.md).
 For detailed technical information, browse the documents above.

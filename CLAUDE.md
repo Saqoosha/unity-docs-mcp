@@ -263,8 +263,9 @@ python run_tests.py
 - **Server Integration**: End-to-end MCP server functionality
 - **Mock Network Calls**: All external Unity API calls are mocked for reliability
 - **Caching Performance**: Validates 6-hour API availability cache functionality
+- **Caching Performance**: Validates 6-hour API availability cache functionality
 
-Total: **88 unit tests** ensuring robust functionality across all components.
+Total: **80 unit tests** ensuring robust functionality across all components.
 
 ### Performance & Caching
 
