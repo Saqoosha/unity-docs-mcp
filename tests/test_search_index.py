@@ -92,8 +92,6 @@ var searchIndex =
         self.assertEqual(index.common_words, set())
         self.assertFalse(index._loaded)
 
-
-
     @patch("requests.get")
     def test_load_index_success(self, mock_get):
         """Test successful index loading."""
@@ -112,7 +110,6 @@ var searchIndex =
         self.assertEqual(len(self.search_index.search_index), 12)
         self.assertEqual(len(self.search_index.common_words), 6)
         self.assertTrue(self.search_index._loaded)
-
 
     @patch("unity_docs_mcp.search_index.UnitySearchIndex.load_index")
     def test_search_basic(self, mock_load_index):
@@ -175,9 +172,6 @@ var searchIndex =
             titles = [r["title"] for r in results]
             self.assertIn("Debug.Log", titles)
 
-
-
-
     def test_suggest_classes(self):
         """Test class name suggestions."""
         # Set up search data
@@ -190,7 +184,6 @@ var searchIndex =
 
         self.assertIn("GameObject", suggestions)
         self.assertNotIn("Transform", suggestions)
-
 
     def test_cache_save_and_load(self):
         """Test cache saving and loading."""
@@ -210,7 +203,6 @@ var searchIndex =
         self.assertTrue(result)
         self.assertEqual(new_index.pages, self.sample_pages)
         self.assertEqual(new_index.search_index, self.sample_search_index)
-
 
     def test_clear_cache(self):
         """Test cache clearing."""

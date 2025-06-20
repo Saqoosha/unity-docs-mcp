@@ -27,7 +27,6 @@ class TestAPICaching(unittest.TestCase):
 
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-
     def test_cache_save_and_load(self):
         """Test saving and loading API cache to/from disk."""
         # Create test cache data
@@ -73,7 +72,6 @@ class TestAPICaching(unittest.TestCase):
         self.scraper._load_api_cache()
         self.assertEqual(self.scraper._api_cache, {})
 
-
     @patch("requests.Session.head")
     def test_cache_used_for_repeated_requests(self, mock_head):
         """Test that cache is used for repeated API availability checks."""
@@ -99,9 +97,6 @@ class TestAPICaching(unittest.TestCase):
         self.assertEqual(result1, result2)
 
 
-
-
-
 class TestSearchIndexCaching(unittest.TestCase):
     """Test search index caching functionality."""
 
@@ -117,7 +112,6 @@ class TestSearchIndexCaching(unittest.TestCase):
         import shutil
 
         shutil.rmtree(self.temp_dir, ignore_errors=True)
-
 
     def test_save_and_load_cache(self):
         """Test saving and loading search index cache."""
@@ -146,8 +140,6 @@ class TestSearchIndexCaching(unittest.TestCase):
         self.assertEqual(len(self.search_index.pages), 2)
         self.assertEqual(self.search_index.pages[0][0], "GameObject")
         self.assertEqual(len(self.search_index.common_words), 3)
-
-
 
     def test_memory_cache_functionality(self):
         """Test in-memory cache for search index."""
@@ -179,7 +171,6 @@ class TestSearchIndexCaching(unittest.TestCase):
             # Data should match
             self.assertEqual(self.search_index.pages, test_pages)
 
-
     def test_clear_cache_all_versions(self):
         """Test clearing cache for all versions."""
         # Create cache files
@@ -202,7 +193,6 @@ class TestSearchIndexCaching(unittest.TestCase):
 
         # Check memory cache is empty
         self.assertEqual(len(self.search_index._memory_cache), 0)
-
 
 
 if __name__ == "__main__":

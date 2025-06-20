@@ -66,7 +66,6 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         self.assertIn("Test content", content)
         self.assertIn("https://docs.unity3d.com", content)
 
-
     @patch("unity_docs_mcp.server.UnityDocScraper")
     async def test_get_unity_api_doc_invalid_version(self, mock_scraper_class):
         """Test API documentation retrieval with invalid version."""
@@ -106,7 +105,6 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         # The server formats API errors differently, check for the class name in error
         self.assertIn("GameObject", result[0].text)
         self.assertIn("not found", result[0].text)
-
 
     @patch("unity_docs_mcp.server.UnityDocScraper")
     @patch("unity_docs_mcp.server.UnityDocParser")
@@ -154,7 +152,6 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         self.assertIn("GameObject", content)
         self.assertIn("Transform", content)
         self.assertIn("2 found", content)
-
 
     @patch("unity_docs_mcp.server.UnityDocScraper")
     @patch("unity_docs_mcp.server.UnityDocParser")
@@ -227,7 +224,6 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         self.assertIn("Class Suggestions", content)
         self.assertIn("GameObject", content)
         self.assertIn("GameObjectUtility", content)
-
 
 
 def run_async_test(test_func):

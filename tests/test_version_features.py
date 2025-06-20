@@ -286,12 +286,6 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
 
         self.scraper = UnityDocScraper()
 
-
-
-
-
-
-
     def test_normalize_invalid_formats(self):
         """Test normalization preserves invalid formats."""
         test_cases = [
@@ -309,15 +303,10 @@ class TestVersionFormatEdgeCases(unittest.TestCase):
             with self.subTest(version=version):
                 result = self.scraper.normalize_version(version)
                 self.assertEqual(result, version)  # Should return as-is
-        
+
         # Special case: whitespace-only strings get stripped to empty string
         result = self.scraper.normalize_version("   ")
         self.assertEqual(result, "")  # Whitespace gets stripped
-
-
-
-
-
 
 
 if __name__ == "__main__":

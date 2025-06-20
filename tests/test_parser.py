@@ -221,13 +221,5 @@ More content
         # The important thing is that the text content is preserved
 
 
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     unittest.main()

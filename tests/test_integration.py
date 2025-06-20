@@ -207,12 +207,6 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(suggestions_upper, suggestions_lower)
 
 
-
-
-
-
-
-
 def run_async_test(test_func):
     """Helper to run async test functions."""
     loop = asyncio.new_event_loop()

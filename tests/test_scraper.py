@@ -33,7 +33,6 @@ class TestUnityDocScraper(unittest.TestCase):
         expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.Instantiate.html"
         self.assertEqual(url, expected)
 
-
     def test_build_api_url_with_hyphen(self):
         """Test building API URL with hyphen notation for properties."""
         url = self.scraper._build_api_url(
@@ -42,13 +41,11 @@ class TestUnityDocScraper(unittest.TestCase):
         expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject-transform.html"
         self.assertEqual(url, expected)
 
-
     def test_build_search_url(self):
         """Test building search URL."""
         url = self.scraper._build_search_url("transform", "6000.0")
         expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/30_search.html?q=transform"
         self.assertEqual(url, expected)
-
 
     def test_validate_version_valid(self):
         """Test version validation with valid versions."""
@@ -94,8 +91,6 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertIn("Vector3", suggestions)
         self.assertIn("Vector2", suggestions)
 
-
-
     @patch("unity_docs_mcp.scraper.requests.Session.get")
     def test_fetch_page_success(self, mock_get):
         """Test successful page fetching."""
@@ -107,18 +102,6 @@ class TestUnityDocScraper(unittest.TestCase):
         result = self.scraper._fetch_page("https://example.com")
         self.assertEqual(result, "<html><body>Test content</body></html>")
         mock_get.assert_called_once()
-
-
-
-
-
-
-
-
-
-
-
-
 
     @patch("unity_docs_mcp.scraper.time.sleep")
     @patch("unity_docs_mcp.scraper.requests.Session.get")
@@ -151,7 +134,6 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertIn("html", result)
         self.assertEqual(result["html"], "<html>Test content</html>")
 
-
     @patch("unity_docs_mcp.scraper.UnityDocScraper._fetch_page")
     def test_get_api_doc_property_fallback(self, mock_fetch):
         """Test that properties fall back to hyphen notation when dot notation fails."""
@@ -170,7 +152,6 @@ class TestUnityDocScraper(unittest.TestCase):
         second_call_url = mock_fetch.call_args_list[1][0][0]
         self.assertIn("ContactPoint2D.otherRigidbody.html", first_call_url)
         self.assertIn("ContactPoint2D-otherRigidbody.html", second_call_url)
-
 
     @patch("unity_docs_mcp.search_index.UnitySearchIndex.search")
     def test_search_docs_success(self, mock_search):
@@ -192,8 +173,6 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertEqual(result["results"], mock_results)
         self.assertEqual(result["count"], 1)
 
-
-
     def test_normalize_version_full_versions(self):
         """Test version normalization for full Unity versions."""
         test_cases = [
@@ -208,8 +187,6 @@ class TestUnityDocScraper(unittest.TestCase):
             with self.subTest(input_version=input_version):
                 result = self.scraper.normalize_version(input_version)
                 self.assertEqual(result, expected)
-
-
 
     def test_validate_version_with_normalization(self):
         """Test version validation with version normalization."""
@@ -233,8 +210,6 @@ class TestUnityDocScraper(unittest.TestCase):
 
         result = self.scraper.get_latest_version()
         self.assertEqual(result, "6000.1")
-
-
 
     @patch("unity_docs_mcp.scraper.requests.Session.head")
     def test_check_api_availability_success(self, mock_head):
@@ -261,8 +236,6 @@ class TestUnityDocScraper(unittest.TestCase):
         # Just check that we got reasonable results
         self.assertGreater(len(result["available"]), 0)
         self.assertGreater(len(result["unavailable"]), 0)
-
-
 
     def test_get_api_doc_with_normalization(self):
         """Test API doc retrieval with version normalization."""
@@ -320,8 +293,6 @@ class TestUnityDocScraper(unittest.TestCase):
         # Should be sorted with latest first
         self.assertEqual(result[0], "6000.2")
 
-
-
     @patch("unity_docs_mcp.scraper.requests.Session.get")
     def test_get_supported_versions_filtering_old_versions(self, mock_get):
         """Test that very old versions are filtered out."""
@@ -365,7 +336,6 @@ class TestUnityDocScraper(unittest.TestCase):
 
         self.assertEqual(suggestions, mock_suggestions)
         self.scraper.search_index.suggest_classes.assert_called_once_with("game")
-
 
     def test_search_integration(self):
         """Test search integration with real-like data."""
@@ -422,7 +392,6 @@ class TestUnityDocScraper(unittest.TestCase):
         # Verify search worked
         self.assertEqual(result["status"], "success")
         self.assertGreater(len(result["results"]), 0)
-
 
 
 class TestNamespaceHandling(unittest.TestCase):
@@ -514,6 +483,7 @@ class TestNamespaceHandling(unittest.TestCase):
         self.assertEqual(result["status"], "success")
         # Should try dot notation first, then hyphen notation
         self.assertIn("AI.NavMeshAgent", result["url"])
+
 
 if __name__ == "__main__":
     unittest.main()
