@@ -3,6 +3,7 @@
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 import time
+import json
 
 import sys
 import os
@@ -10,6 +11,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from unity_docs_mcp.scraper import UnityDocScraper
+from unity_docs_mcp.search_index import UnitySearchIndex
 
 
 class TestUnityDocScraper(unittest.TestCase):
@@ -512,6 +514,197 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertIn("2019.4", result)
         self.assertIn("2020.3", result)
         self.assertNotIn("2018.4", result)  # Should be filtered out
+
+    def test_scraper_initialization(self):
+        """Test that UnityDocScraper can be initialized."""
+        scraper = UnityDocScraper()
+        self.assertIsNotNone(scraper)
+        self.assertIsNotNone(scraper.session)
+        self.assertIsNotNone(scraper.search_index)
+
+    # Additional search tests from test_scraper_search.py
+    def test_suggest_class_names_from_index(self):
+        """Test class name suggestions using search index."""
+        # Mock suggestions from index
+        mock_suggestions = ["GameObject", "GameObjectUtility"]
+        self.scraper.search_index.suggest_classes = Mock(return_value=mock_suggestions)
+
+        suggestions = self.scraper.suggest_class_names("game")
+
+        self.assertEqual(suggestions, mock_suggestions)
+        self.scraper.search_index.suggest_classes.assert_called_once_with("game")
+
+    def test_suggest_class_names_fallback(self):
+        """Test class name suggestions fallback when index returns empty."""
+        # Mock empty suggestions from index
+        self.scraper.search_index.suggest_classes = Mock(return_value=[])
+
+        suggestions = self.scraper.suggest_class_names("game")
+
+        # Should use fallback common classes
+        self.assertIn("GameObject", suggestions)
+        self.assertLessEqual(len(suggestions), 10)
+
+    def test_search_integration(self):
+        """Test search integration with real-like data."""
+        # Set up more realistic mock data
+        search_results = [
+            {
+                "title": "Transform",
+                "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Transform.html",
+                "description": "Position, rotation and scale of an object.",
+            },
+            {
+                "title": "Transform.position",
+                "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Transform-position.html",
+                "description": "The world space position of the Transform.",
+            },
+            {
+                "title": "Transform.Translate",
+                "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Transform.Translate.html",
+                "description": "Moves the transform in the direction and distance of translation.",
+            },
+        ]
+
+        self.scraper.search_index.search = Mock(return_value=search_results)
+
+        # Search for "transform position"
+        result = self.scraper.search_docs("transform position", "6000.0")
+
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(len(result["results"]), 3)
+        # Transform.position should be in results
+        titles = [r["title"] for r in result["results"]]
+        self.assertIn("Transform.position", titles)
+
+    @patch("unity_docs_mcp.search_index.UnitySearchIndex.load_index")
+    def test_search_with_index_loading(self, mock_load_index):
+        """Test search triggers index loading if needed."""
+        # Create a real UnitySearchIndex instance for this test
+        real_index = UnitySearchIndex()
+        self.scraper.search_index = real_index
+
+        # Mock successful index loading
+        mock_load_index.return_value = True
+        real_index.pages = [["GameObject", "GameObject"]]
+        real_index.page_info = [["Base class for all entities.", 0]]
+        real_index.search_index = {"gameobject": [0]}
+        real_index.common_words = set()
+
+        # Perform search (should trigger index loading)
+        result = self.scraper.search_docs("gameobject", "6000.0")
+
+        # Verify index was loaded
+        mock_load_index.assert_called_once_with("6000.0")
+
+        # Verify search worked
+        self.assertEqual(result["status"], "success")
+        self.assertGreater(len(result["results"]), 0)
+
+    def test_search_different_versions(self):
+        """Test search with different Unity versions."""
+        mock_results = [{"title": "Test", "url": "test.html", "description": "Test"}]
+        self.scraper.search_index.search = Mock(return_value=mock_results)
+
+        # Test different versions
+        versions = ["6000.0", "2023.3", "2022.3"]
+        for version in versions:
+            result = self.scraper.search_docs("test", version)
+            self.assertEqual(result["status"], "success")
+
+        # Verify each version was searched
+        self.assertEqual(self.scraper.search_index.search.call_count, len(versions))
+
+
+class TestNamespaceHandling(unittest.TestCase):
+    """Test that the scraper correctly handles Unity classes with namespaces."""
+
+    def setUp(self):
+        self.scraper = UnityDocScraper()
+
+    @patch.object(UnityDocScraper, "_fetch_page")
+    def test_navmeshagent_without_namespace(self, mock_fetch):
+        """Test that NavMeshAgent is found even without AI namespace."""
+        # Mock search results
+        self.scraper.search_index.search = Mock(
+            return_value=[
+                {
+                    "type": "class",
+                    "title": "NavMeshAgent",
+                    "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/AI.NavMeshAgent.html",
+                }
+            ]
+        )
+
+        # Mock successful page fetch
+        mock_fetch.return_value = "<html>NavMeshAgent content</html>"
+
+        # Test
+        result = self.scraper.get_api_doc("NavMeshAgent", version="6000.0")
+
+        self.assertEqual(result["status"], "success")
+        self.assertIn("AI.NavMeshAgent", result["url"])
+
+    @patch.object(UnityDocScraper, "_fetch_page")
+    def test_class_with_namespace_provided(self, mock_fetch):
+        """Test that classes work when namespace is provided."""
+        # Mock successful page fetch
+        mock_fetch.return_value = "<html>NavMeshAgent content</html>"
+
+        # Test
+        result = self.scraper.get_api_doc("AI.NavMeshAgent", version="6000.0")
+
+        self.assertEqual(result["status"], "success")
+        self.assertIn("AI.NavMeshAgent", result["url"])
+
+    @patch.object(UnityDocScraper, "_fetch_page")
+    def test_class_without_namespace_in_unity(self, mock_fetch):
+        """Test that classes without namespaces work correctly."""
+        # Mock search results
+        self.scraper.search_index.search = Mock(
+            return_value=[
+                {
+                    "type": "class",
+                    "title": "GameObject",
+                    "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.html",
+                }
+            ]
+        )
+
+        # Mock successful page fetch
+        mock_fetch.return_value = "<html>GameObject content</html>"
+
+        # Test
+        result = self.scraper.get_api_doc("GameObject", version="6000.0")
+
+        self.assertEqual(result["status"], "success")
+        self.assertIn("GameObject.html", result["url"])
+
+    @patch.object(UnityDocScraper, "_fetch_page")
+    def test_method_with_namespace_resolution(self, mock_fetch):
+        """Test that methods work with namespace resolution."""
+        # Mock search results
+        self.scraper.search_index.search = Mock(
+            return_value=[
+                {
+                    "type": "class",
+                    "title": "NavMeshAgent",
+                    "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/AI.NavMeshAgent.html",
+                }
+            ]
+        )
+
+        # Mock successful page fetch for property (hyphen notation)
+        mock_fetch.return_value = "<html>remainingDistance content</html>"
+
+        # Test
+        result = self.scraper.get_api_doc(
+            "NavMeshAgent", "remainingDistance", version="6000.0"
+        )
+
+        self.assertEqual(result["status"], "success")
+        # Should try dot notation first, then hyphen notation
+        self.assertIn("AI.NavMeshAgent", result["url"])
 
 
 if __name__ == "__main__":

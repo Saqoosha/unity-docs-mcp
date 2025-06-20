@@ -225,13 +225,13 @@ src/unity_docs_mcp/
 └── search_index.py # Local search index handler
 
 tests/
-├── test_scraper.py       # Core scraper tests (41 tests)
-├── test_search_index.py  # Search functionality tests (15 tests)
+├── test_scraper.py       # Scraper tests including search and namespace handling (59 tests)
+├── test_search_index.py  # Search index functionality tests (16 tests)
 ├── test_version_features.py # Version handling tests (11 tests)
-├── test_parser.py        # HTML parsing tests (9 tests)
-├── test_scraper_search.py # Search integration tests (8 tests)
-├── test_integration.py   # End-to-end tests (3 tests)
-└── test_server.py        # MCP server tests (1 test)
+├── test_parser.py        # HTML parsing tests (10 tests)
+├── test_integration.py   # End-to-end tests (6 tests)
+├── test_server.py        # MCP server tests (5 tests)
+└── test_basic_functionality.py # Basic imports and crash tests (2 tests)
 ```
 
 ### Testing
@@ -243,11 +243,13 @@ The project includes comprehensive unit tests covering all version-related funct
 source venv/bin/activate && python -m unittest discover tests/
 
 # Run specific test modules
-python tests/test_scraper.py          # Core scraper functionality (41 tests)
+python tests/test_scraper.py          # Scraper, search, and namespace tests (59 tests)
+python tests/test_search_index.py     # Search index functionality (16 tests)
 python tests/test_version_features.py # Version handling features (11 tests)
-python tests/test_search_index.py     # Search index functionality (15 tests)  
-python tests/test_parser.py           # HTML parsing functionality (9 tests)
-python tests/test_integration.py      # Integration tests (3 tests)
+python tests/test_parser.py           # HTML parsing functionality (10 tests)
+python tests/test_server.py           # MCP server tests (5 tests)
+python tests/test_integration.py      # Integration tests (6 tests)
+python tests/test_basic_functionality.py # Basic imports and crash tests (2 tests)
 
 # Run with coverage
 python run_tests.py
@@ -264,7 +266,7 @@ python run_tests.py
 - **Mock Network Calls**: All external Unity API calls are mocked for reliability
 - **Caching Performance**: Validates 6-hour API availability cache functionality
 
-Total: **88 unit tests** ensuring robust functionality across all components.
+Total: **109 unit tests** ensuring robust functionality across all components.
 
 ### Performance & Caching
 

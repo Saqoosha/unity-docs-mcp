@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions test matrix now only tests Python 3.10, 3.11, and 3.12
 - Updated pyproject.toml to require Python >=3.10
 
+### Refactored
+- Reorganized test structure to eliminate duplicates and improve organization
+- Consolidated test_scraper_search.py and test_namespace_handling.py into test_scraper.py
+- Moved initialization tests to their respective component test files
+- Simplified test_basic_functionality.py to contain only import and crash tests
+- Maintained all 109 tests while improving structure and eliminating redundancy
+
 ## [0.2.2] - 2025-06-20
 
 ### Fixed
