@@ -2,13 +2,13 @@
 
 ## 📋 Project Overview
 
-**Purpose**: Unity公式APIドキュメントをMCP (Model Context Protocol)経由で取得し、クリーンなMarkdown形式で提供するサーバー
+**Purpose**: A server that retrieves Unity official API documentation via MCP (Model Context Protocol) and provides it in clean Markdown format
 
 **Key Features**:
-- Unity APIドキュメントの取得（クラス、メソッド）
-- ドキュメント検索機能
-- 複数Unityバージョン対応
-- クリーンなテキスト出力（UI要素、フォーマット除去）
+- Retrieve Unity API documentation (classes, methods)
+- Document search functionality
+- Multiple Unity version support
+- Clean text output (UI elements and formatting removed)
 
 ## 🏗️ Architecture
 
@@ -98,11 +98,11 @@ dependencies = [
 ## 🐛 Problems & Solutions
 
 ### Problem 0: Search Page JavaScript Execution
-**症状**: Unity search page returns "Searching Script Reference, please wait." with loading spinner
+**Symptom**: Unity search page returns "Searching Script Reference, please wait." with loading spinner
 
-**原因**: Unity's search page uses JavaScript to dynamically load results from a local index
+**Cause**: Unity's search page uses JavaScript to dynamically load results from a local index
 
-**解決策**: Download and use Unity's JavaScript search index directly
+**Solution**: Download and use Unity's JavaScript search index directly
 ```python
 # Download index.js from Unity docs
 # Parse JavaScript variables: pages, info, searchIndex, common
@@ -111,24 +111,24 @@ dependencies = [
 ```
 
 ### Problem 1: Code Bracket Issues
-**症状**: 
+**Symptom**: 
 ```csharp
 public class Example :[MonoBehaviour]{ 
     private[GameObject][] cubes = new[GameObject][10];
 ```
 
-**原因**: HTMLの`<a>`タグがTrafilaturaによって`[text]`形式に変換される
+**Cause**: HTML `<a>` tags are converted to `[text]` format by Trafilatura
 
-**解決策**: HTMLレベルでリンクタグを事前除去
+**Solution**: Remove link tags at HTML level before processing
 ```python
 for link in soup.find_all('a'):
     link.replace_with(link.get_text())
 ```
 
 ### Problem 2: UI Elements in Content
-**症状**: "Leave feedback", "Success!", "Submission failed" がAPIドキュメントに混入
+**Symptom**: "Leave feedback", "Success!", "Submission failed" mixed into API documentation
 
-**解決策**: 特定のUI要素を除去
+**Solution**: Remove specific UI elements
 ```python
 feedback_text_patterns = [
     'Leave feedback', 'Suggest a change', 'Success!', 
@@ -137,26 +137,26 @@ feedback_text_patterns = [
 ```
 
 ### Problem 3: Bold Formatting
-**症状**: `**GameObject[]**` のような太字フォーマット
+**Symptom**: Bold formatting like `**GameObject[]**`
 
-**解決策**: HTMLの`<strong>`/`<b>`タグとMarkdownの`**`を除去
+**Solution**: Remove HTML `<strong>`/`<b>` tags and Markdown `**`
 
 ### Problem 4: Markdown Links
-**症状**: `[ComputeBuffer](ComputeBuffer.html)` がパラメータに残る
+**Symptom**: `[ComputeBuffer](ComputeBuffer.html)` remains in parameters
 
-**解決策**: 正規表現でMarkdownリンクを除去
+**Solution**: Remove Markdown links with regex
 ```python
 content = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', content)
 ```
 
 ### Problem 5: Property vs Method URL Patterns
-**症状**: `ContactPoint2D.otherRigidbody` returns 404 error
+**Symptom**: `ContactPoint2D.otherRigidbody` returns 404 error
 
-**原因**: Unity uses different URL patterns for properties vs methods
+**Cause**: Unity uses different URL patterns for properties vs methods
 - Methods use dot notation: `GameObject.SetActive.html`
 - Properties use hyphen notation: `GameObject-transform.html`
 
-**解決策**: Automatic fallback mechanism
+**Solution**: Automatic fallback mechanism
 ```python
 # First try dot notation (for methods)
 url = build_api_url(class_name, method_name)  # GameObject.SetActive.html
