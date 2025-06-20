@@ -32,7 +32,7 @@ uvx --from git+https://github.com/your-username/unity-docs-mcp unity-docs-mcp
 
 ### For Claude Desktop Users
 
-Add this to your Claude Desktop configuration:
+#### Method 1: Direct from GitHub (Recommended for Users)
 
 ```json
 {
@@ -44,6 +44,22 @@ Add this to your Claude Desktop configuration:
   }
 }
 ```
+
+#### Method 2: Local Development Installation
+
+After cloning and setting up the project locally:
+
+```json
+{
+  "mcpServers": {
+    "unity-docs": {
+      "command": "/path/to/your/venv/bin/unity-docs-mcp"
+    }
+  }
+}
+```
+
+Replace `/path/to/your/venv` with your actual virtual environment path.
 
 **Configuration File Locations:**
 - **Windows:** `%APPDATA%/Claude/claude_desktop_config.json`
@@ -122,18 +138,15 @@ python validate_structure.py
 
 ### Claude Desktop Configuration
 
-Add the following to your Claude Desktop configuration file:
+See "Quick Start → For Claude Desktop Users" section above for the recommended setup.
 
-**Windows:** `%APPDATA%/Claude/claude_desktop_config.json`
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+For development installations, ensure your virtual environment path is correct:
 
 ```json
 {
   "mcpServers": {
     "unity-docs": {
-      "command": "python",
-      "args": ["/path/to/unity-docs-mcp/src/unity_docs_mcp/server.py"],
-      "env": {}
+      "command": "/absolute/path/to/unity-docs-mcp/venv/bin/unity-docs-mcp"
     }
   }
 }

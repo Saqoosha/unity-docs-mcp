@@ -34,6 +34,9 @@ unity-docs-mcp
 # 💾 Advanced caching enabled (6h API + 24h search index)
 # 🔌 Starting MCP server...
 
+# IMPORTANT: For Claude Desktop, use the full path to avoid "module not found" errors:
+# /path/to/unity-docs-mcp/venv/bin/unity-docs-mcp
+
 # Direct module execution
 python -m unity_docs_mcp.server
 ```
