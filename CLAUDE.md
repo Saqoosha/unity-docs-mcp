@@ -2,6 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 IMPORTANT: Documentation Update Rule 🚨
+
+**When making ANY code changes, you MUST update ALL related documentation:**
+
+1. **Code Change → Documentation Update Checklist:**
+   - [ ] README.md - If it affects installation or basic usage
+   - [ ] docs/DETAILED_GUIDE.md - If it affects detailed usage or configuration
+   - [ ] docs/ARCHITECTURE.md - If it changes technical design
+   - [ ] docs/CHANGELOG.md - ALWAYS add an entry for changes
+   - [ ] CLAUDE.md - If it affects development workflow
+
+2. **Never commit code changes without updating docs**
+
+3. **Documentation lives in:**
+   - Root: User-facing (README.md, CLAUDE.md, LICENSE)
+   - docs/: Technical and detailed documentation
+
 ## Unity Docs MCP Server - Development Guide
 
 ### Commands
@@ -279,7 +296,14 @@ The server displays helpful information on startup (via stderr, safe for MCP pro
 
 - Always activate virtual environment before development
 - MCP Inspector runs on ports 6274 (UI) and 6277 (proxy)  
-- Update docs after significant changes to remember what was done
+- **CRITICAL: Update ALL related documentation when making code changes:**
+  - README.md - Update if user-facing features change
+  - docs/DETAILED_GUIDE.md - Update for installation/usage changes
+  - docs/ARCHITECTURE.md - Update for design/technical changes
+  - docs/CHANGELOG.md - Add entry for every significant change
+  - CLAUDE.md - Update this file if development process changes
 - All new version-related features are fully tested
 - Startup messages appear in Claude Desktop logs for debugging
-- See ARCHITECTURE.md for complete technical details
+- Documentation structure:
+  - Root: Simple user docs (README.md, CLAUDE.md, LICENSE)
+  - docs/: Detailed technical documentation
