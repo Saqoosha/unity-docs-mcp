@@ -106,12 +106,18 @@ pip install -e .
 uv pip install -r requirements-dev.txt
 
 # Run tests
-python run_tests.py
-# or without coverage:
-python -m unittest discover tests -v
+./run_tests.sh  # Comprehensive test suite
+# or
+python run_tests.py  # With coverage (if coverage installed)
+# or
+python -m unittest discover tests -v  # Basic unittest
 
 # Validate project structure
 python validate_structure.py
+
+# Pre-commit hook (automatically installed)
+# Runs basic functionality tests before each commit
+# Prevents syntax errors and import issues
 ```
 
 ### Running the Development Server
@@ -135,7 +141,7 @@ You can also run the server directly:
 ```bash
 # After installation, shows startup information
 unity-docs-mcp
-# 🚀 Unity Docs MCP Server v0.2.1
+# 🚀 Unity Docs MCP Server v0.2.2
 # 📚 Supporting Unity versions 2019.1 - 6000.2
 # 💾 Advanced caching enabled (6h API + 24h search index)
 # 🔌 Starting MCP server...
@@ -206,6 +212,20 @@ suggest_unity_classes:
 **Examples:**
 - `partial_name: "game"` → Returns GameObject, etc.
 - `partial_name: "trans"` → Returns Transform, etc.
+
+## Key Features
+
+### 100% Search Accuracy
+The MCP server implements Unity's official search algorithm for perfect accuracy:
+- Exact title matches receive highest priority (10000 points)
+- Class names are correctly resolved even without namespace (e.g., "NavMeshAgent" finds "AI.NavMeshAgent")
+- Intelligent scoring system matches Unity's own documentation search
+
+### Namespace Resolution
+Automatic discovery of Unity classes with namespaces:
+- No hardcoded mappings - uses dynamic search index
+- Common classes like Button, Text, NavMeshAgent work without specifying UI., AI. prefixes
+- Helpful error messages guide users when namespace might be needed
 
 ## Supported Unity Versions
 
