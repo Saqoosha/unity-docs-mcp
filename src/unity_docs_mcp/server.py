@@ -12,7 +12,6 @@ try:
     from .parser import UnityDocParser
 except ImportError:
     # Handle direct execution
-    import sys
     import os
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -209,8 +208,8 @@ class UnityDocsMCPServer:
                     if "." not in class_name:
                         error_msg += "**Troubleshooting tips:**\n"
                         error_msg += f"1. This class might exist in a namespace. Try searching for '{class_name}' to find the full name.\n"
-                        error_msg += f"2. Common Unity namespaces: AI, UI, VFX, Rendering, Audio, etc.\n"
-                        error_msg += f"3. Example: 'NavMeshAgent' is actually 'AI.NavMeshAgent'\n\n"
+                        error_msg += "2. Common Unity namespaces: AI, UI, VFX, Rendering, Audio, etc.\n"
+                        error_msg += "3. Example: 'NavMeshAgent' is actually 'AI.NavMeshAgent'\n\n"
 
                     error_msg += "**Note:** The API might exist but wasn't found in the tested versions."
 
@@ -296,7 +295,7 @@ class UnityDocsMCPServer:
             ]
 
         # Format the response
-        content = f"# Unity Documentation Search Results\n\n"
+        content = "# Unity Documentation Search Results\n\n"
         content += f"**Query:** {query}\n"
 
         # Show version info (including normalization if different)
@@ -316,7 +315,7 @@ class UnityDocsMCPServer:
             # Extract class name for get_unity_api_doc suggestion
             title = res.get("title", "")
             result_type = res.get("type", "")
-            
+
             # Show tool help for classes, properties, and methods
             if result_type in ["class", "property", "method", "function"]:
                 # For properties and methods, extract the base class name
