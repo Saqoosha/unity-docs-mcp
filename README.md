@@ -18,52 +18,42 @@ A Model Context Protocol (MCP) server that provides Unity documentation retrieva
 
 ## Quick Start
 
-### For End Users (Simplest)
+### For Claude Desktop Users (Most Common)
 
-If you just want to use the MCP server with Claude Desktop or other MCP clients:
+#### Using Claude Code CLI (One Command!)
+
+```bash
+claude mcp add unity-docs -s user -- uvx --from git+https://github.com/Saqoosha/unity-docs-mcp unity-docs-mcp
+```
+
+That's it! The Unity Docs MCP server is now available in Claude Desktop.
+
+### For Other MCP Clients
 
 ```bash
 # Install uv if you haven't already
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Run directly with uvx (no installation needed!)
-uvx --from git+https://github.com/your-username/unity-docs-mcp unity-docs-mcp
+# Run directly with uvx
+uvx --from git+https://github.com/Saqoosha/unity-docs-mcp unity-docs-mcp
 ```
 
-### For Claude Desktop Users
-
-#### Method 1: Direct from GitHub (Recommended for Users)
+If you prefer manual configuration, add to your Claude Desktop config:
 
 ```json
 {
   "mcpServers": {
     "unity-docs": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/your-username/unity-docs-mcp", "unity-docs-mcp"]
+      "args": ["--from", "git+https://github.com/Saqoosha/unity-docs-mcp", "unity-docs-mcp"]
     }
   }
 }
 ```
-
-#### Method 2: Local Development Installation
-
-After cloning and setting up the project locally:
-
-```json
-{
-  "mcpServers": {
-    "unity-docs": {
-      "command": "/path/to/your/venv/bin/unity-docs-mcp"
-    }
-  }
-}
-```
-
-Replace `/path/to/your/venv` with your actual virtual environment path.
 
 **Configuration File Locations:**
-- **Windows:** `%APPDATA%/Claude/claude_desktop_config.json`
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%/Claude/claude_desktop_config.json`
 
 ## Installation
 
@@ -76,8 +66,8 @@ Replace `/path/to/your/venv` with your actual virtual environment path.
 ### Method 1: Install with uvx (Recommended for Users)
 
 ```bash
-# Install directly from GitHub (replace with actual repository URL)
-uvx --from git+https://github.com/your-username/unity-docs-mcp unity-docs-mcp
+# Install directly from GitHub
+uvx --from git+https://github.com/Saqoosha/unity-docs-mcp unity-docs-mcp
 
 # Or install from PyPI (when published)
 uvx unity-docs-mcp
