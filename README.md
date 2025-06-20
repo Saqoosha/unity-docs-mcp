@@ -40,7 +40,7 @@ Ask Claude about Unity APIs:
 - 📖 Full API documentation
 - 🎯 Version-specific docs (2019.1 - 6000.2)
 - 💾 Smart caching (6h API + 24h search)
-- ✅ 88 tests
+- ✅ 80 tests
 
 ## Development
 
