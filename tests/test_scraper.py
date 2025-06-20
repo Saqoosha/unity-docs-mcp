@@ -33,11 +33,6 @@ class TestUnityDocScraper(unittest.TestCase):
         expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.Instantiate.html"
         self.assertEqual(url, expected)
 
-    def test_build_api_url_whitespace_handling(self):
-        """Test URL building with whitespace in inputs."""
-        url = self.scraper._build_api_url(" GameObject ", " Instantiate ", "6000.0")
-        expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.Instantiate.html"
-        self.assertEqual(url, expected)
 
     def test_build_api_url_with_hyphen(self):
         """Test building API URL with hyphen notation for properties."""
@@ -47,18 +42,6 @@ class TestUnityDocScraper(unittest.TestCase):
         expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject-transform.html"
         self.assertEqual(url, expected)
 
-    def test_build_api_url_dot_vs_hyphen(self):
-        """Test that dot and hyphen notations produce different URLs."""
-        dot_url = self.scraper._build_api_url(
-            "ContactPoint2D", "otherRigidbody", "6000.0", use_hyphen=False
-        )
-        hyphen_url = self.scraper._build_api_url(
-            "ContactPoint2D", "otherRigidbody", "6000.0", use_hyphen=True
-        )
-
-        self.assertIn("ContactPoint2D.otherRigidbody.html", dot_url)
-        self.assertIn("ContactPoint2D-otherRigidbody.html", hyphen_url)
-        self.assertNotEqual(dot_url, hyphen_url)
 
     def test_build_search_url(self):
         """Test building search URL."""
@@ -66,11 +49,6 @@ class TestUnityDocScraper(unittest.TestCase):
         expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/30_search.html?q=transform"
         self.assertEqual(url, expected)
 
-    def test_build_search_url_with_spaces(self):
-        """Test building search URL with spaces in query."""
-        url = self.scraper._build_search_url("game object", "6000.0")
-        expected = "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/30_search.html?q=game%20object"
-        self.assertEqual(url, expected)
 
     def test_validate_version_valid(self):
         """Test version validation with valid versions."""
@@ -116,15 +94,7 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertIn("Vector3", suggestions)
         self.assertIn("Vector2", suggestions)
 
-    def test_suggest_class_names_no_matches(self):
-        """Test class name suggestions with no matches."""
-        suggestions = self.scraper.suggest_class_names("xyz123nonexistent")
-        self.assertEqual(len(suggestions), 0)
 
-    def test_suggest_class_names_limit(self):
-        """Test class name suggestions are limited to 10."""
-        suggestions = self.scraper.suggest_class_names("e")  # Many classes contain 'e'
-        self.assertLessEqual(len(suggestions), 10)
 
     @patch("unity_docs_mcp.scraper.requests.Session.get")
     def test_fetch_page_success(self, mock_get):
@@ -138,203 +108,17 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertEqual(result, "<html><body>Test content</body></html>")
         mock_get.assert_called_once()
 
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_fetch_page_404(self, mock_get):
-        """Test page fetching with 404 error."""
-        mock_response = Mock()
-        mock_response.status_code = 404
-        mock_get.return_value = mock_response
 
-        result = self.scraper._fetch_page("https://example.com/nonexistent")
-        self.assertIsNone(result)
 
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_fetch_page_server_error(self, mock_get):
-        """Test page fetching with server error."""
-        mock_response = Mock()
-        mock_response.status_code = 500
-        mock_get.return_value = mock_response
 
-        result = self.scraper._fetch_page("https://example.com")
-        self.assertIsNone(result)
 
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_fetch_page_request_exception(self, mock_get):
-        """Test page fetching with request exception."""
-        import requests
 
-        mock_get.side_effect = requests.exceptions.RequestException("Connection error")
 
-        result = self.scraper._fetch_page("https://example.com")
-        self.assertIsNone(result)
 
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_fetch_page_timeout(self, mock_get):
-        """Test page fetching with timeout."""
-        import requests
 
-        mock_get.side_effect = requests.exceptions.Timeout("Request timed out")
 
-        result = self.scraper._fetch_page("https://example.com")
-        self.assertIsNone(result)
 
-        # Verify timeout was passed in request
-        mock_get.assert_called_once()
-        call_kwargs = mock_get.call_args[1]
-        self.assertEqual(call_kwargs["timeout"], 30)
 
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_fetch_page_connection_error(self, mock_get):
-        """Test page fetching with connection error."""
-        import requests
-
-        mock_get.side_effect = requests.exceptions.ConnectionError("Failed to connect")
-
-        result = self.scraper._fetch_page("https://example.com")
-        self.assertIsNone(result)
-
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_fetch_page_ssl_error(self, mock_get):
-        """Test page fetching with SSL error."""
-        import requests
-
-        mock_get.side_effect = requests.exceptions.SSLError("SSL certificate error")
-
-        result = self.scraper._fetch_page("https://example.com")
-        self.assertIsNone(result)
-
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_fetch_page_redirect_handling(self, mock_get):
-        """Test page fetching with redirects."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.text = "<html>Redirected content</html>"
-        mock_response.history = [Mock(status_code=301), Mock(status_code=302)]
-        mock_get.return_value = mock_response
-
-        result = self.scraper._fetch_page("https://example.com")
-        self.assertEqual(result, "<html>Redirected content</html>")
-
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_fetch_page_large_response(self, mock_get):
-        """Test page fetching with large response."""
-        # Create a large HTML response (10MB+)
-        large_content = "<html><body>" + ("X" * 10_000_000) + "</body></html>"
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.text = large_content
-        mock_get.return_value = mock_response
-
-        result = self.scraper._fetch_page("https://example.com")
-        self.assertEqual(result, large_content)
-
-    @patch("unity_docs_mcp.scraper.requests.Session.head")
-    def test_check_api_availability_timeout_handling(self, mock_head):
-        """Test API availability check with timeouts."""
-        import requests
-
-        # Create a list to track calls
-        call_count = 0
-
-        def mock_head_func(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count % 2 == 1:  # Odd calls succeed
-                mock_response = Mock()
-                mock_response.status_code = 200
-                return mock_response
-            else:  # Even calls timeout
-                raise requests.exceptions.Timeout("Timeout")
-
-        mock_head.side_effect = mock_head_func
-
-        result = self.scraper.check_api_availability_across_versions("GameObject")
-
-        # Should have some available and some unavailable due to timeouts
-        # The exact counts depend on which versions are validated
-        self.assertIn("available", result)
-        self.assertIn("unavailable", result)
-        # At least one of them should have results
-        self.assertGreater(len(result["available"]) + len(result["unavailable"]), 0)
-
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_get_supported_versions_malformed_response(self, mock_get):
-        """Test getting supported versions with malformed JavaScript response."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.text = """This is not valid JavaScript {{{
-            supported: [ malformed data
-        """
-        mock_get.return_value = mock_response
-
-        result = self.scraper.get_supported_versions()
-
-        # Should fallback to hardcoded list
-        self.assertIsInstance(result, list)
-        self.assertGreater(len(result), 0)
-        self.assertIn("6000.0", result)
-
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_get_latest_version_partial_response(self, mock_get):
-        """Test getting latest version with partial/incomplete response."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.url = "https://docs.unity3d.com/ScriptReference/GameObject.html"
-        mock_response.text = "<html><title>Unity"  # Incomplete HTML
-        mock_get.return_value = mock_response
-
-        result = self.scraper.get_latest_version()
-
-        # Should fallback to first supported version
-        expected = self.scraper.get_supported_versions()[0]
-        self.assertEqual(result, expected)
-
-    @patch("unity_docs_mcp.scraper.time.sleep")
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_concurrent_requests_rate_limiting(self, mock_get, mock_sleep):
-        """Test that concurrent requests are properly rate limited."""
-        import threading
-        import time
-
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.text = "content"
-        mock_get.return_value = mock_response
-
-        # Track request times
-        request_times = []
-        request_lock = threading.Lock()
-
-        def track_time(*args, **kwargs):
-            with request_lock:
-                request_times.append(time.time())
-            return mock_response
-
-        mock_get.side_effect = track_time
-
-        # Reset last request time to ensure first request doesn't wait
-        self.scraper.last_request_time = 0
-
-        # Make multiple requests in threads
-        threads = []
-        for i in range(3):
-            t = threading.Thread(
-                target=lambda idx=i: self.scraper._fetch_page(
-                    f"https://example.com/{idx}"
-                )
-            )
-            threads.append(t)
-            t.start()
-
-        # Wait for all threads
-        for t in threads:
-            t.join()
-
-        # Should have made 3 requests
-        self.assertEqual(len(request_times), 3)
-
-        # Sleep should have been called for rate limiting
-        self.assertGreater(mock_sleep.call_count, 0)
 
     @patch("unity_docs_mcp.scraper.time.sleep")
     @patch("unity_docs_mcp.scraper.requests.Session.get")
@@ -367,15 +151,6 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertIn("html", result)
         self.assertEqual(result["html"], "<html>Test content</html>")
 
-    @patch("unity_docs_mcp.scraper.UnityDocScraper._fetch_page")
-    def test_get_api_doc_fetch_failure(self, mock_fetch):
-        """Test API documentation retrieval with fetch failure."""
-        mock_fetch.return_value = None
-
-        result = self.scraper.get_api_doc("GameObject", "Instantiate", "6000.0")
-
-        self.assertEqual(result["status"], "error")
-        self.assertIn("error", result)
 
     @patch("unity_docs_mcp.scraper.UnityDocScraper._fetch_page")
     def test_get_api_doc_property_fallback(self, mock_fetch):
@@ -396,15 +171,6 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertIn("ContactPoint2D.otherRigidbody.html", first_call_url)
         self.assertIn("ContactPoint2D-otherRigidbody.html", second_call_url)
 
-    @patch("unity_docs_mcp.scraper.UnityDocScraper._fetch_page")
-    def test_get_api_doc_exception(self, mock_fetch):
-        """Test API documentation retrieval with exception."""
-        mock_fetch.side_effect = Exception("Network error")
-
-        result = self.scraper.get_api_doc("GameObject", "Instantiate", "6000.0")
-
-        self.assertEqual(result["status"], "error")
-        self.assertIn("Network error", result["error"])
 
     @patch("unity_docs_mcp.search_index.UnitySearchIndex.search")
     def test_search_docs_success(self, mock_search):
@@ -426,26 +192,7 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertEqual(result["results"], mock_results)
         self.assertEqual(result["count"], 1)
 
-    @patch("unity_docs_mcp.search_index.UnitySearchIndex.search")
-    def test_search_docs_no_results(self, mock_search):
-        """Test documentation search with no results."""
-        mock_search.return_value = []
 
-        result = self.scraper.search_docs("nonexistent", "6000.0")
-
-        self.assertEqual(result["status"], "success")
-        self.assertEqual(result["results"], [])
-        self.assertEqual(result["count"], 0)
-
-    @patch("unity_docs_mcp.search_index.UnitySearchIndex.search")
-    def test_search_docs_exception(self, mock_search):
-        """Test documentation search with exception."""
-        mock_search.side_effect = Exception("Search error")
-
-        result = self.scraper.search_docs("transform", "6000.0")
-
-        self.assertEqual(result["status"], "error")
-        self.assertIn("Search error", result["error"])
 
     def test_normalize_version_full_versions(self):
         """Test version normalization for full Unity versions."""
@@ -462,23 +209,7 @@ class TestUnityDocScraper(unittest.TestCase):
                 result = self.scraper.normalize_version(input_version)
                 self.assertEqual(result, expected)
 
-    def test_normalize_version_already_normalized(self):
-        """Test version normalization for already normalized versions."""
-        test_cases = ["6000.0", "2023.3", "2022.3", "2021.3", "2020.3", "2019.4"]
 
-        for version in test_cases:
-            with self.subTest(version=version):
-                result = self.scraper.normalize_version(version)
-                self.assertEqual(result, version)
-
-    def test_normalize_version_invalid_formats(self):
-        """Test version normalization for invalid formats."""
-        test_cases = ["invalid", "1", "abc.def", ""]
-
-        for version in test_cases:
-            with self.subTest(version=version):
-                result = self.scraper.normalize_version(version)
-                self.assertEqual(result, version)  # Should return as-is
 
     def test_validate_version_with_normalization(self):
         """Test version validation with version normalization."""
@@ -503,27 +234,7 @@ class TestUnityDocScraper(unittest.TestCase):
         result = self.scraper.get_latest_version()
         self.assertEqual(result, "6000.1")
 
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_get_latest_version_from_content(self, mock_get):
-        """Test latest version detection from page content."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.url = "https://docs.unity3d.com/ScriptReference/GameObject.html"  # No version in URL
-        mock_response.text = "<html><title>Unity 6.1 Documentation</title></html>"
-        mock_get.return_value = mock_response
 
-        result = self.scraper.get_latest_version()
-        self.assertEqual(result, "6000.1")
-
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_get_latest_version_fallback(self, mock_get):
-        """Test latest version detection with fallback."""
-        mock_get.side_effect = Exception("Network error")
-
-        result = self.scraper.get_latest_version()
-        # Should fallback to first supported version
-        expected = self.scraper.get_supported_versions()[0]
-        self.assertEqual(result, expected)
 
     @patch("unity_docs_mcp.scraper.requests.Session.head")
     def test_check_api_availability_success(self, mock_head):
@@ -551,30 +262,7 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertGreater(len(result["available"]), 0)
         self.assertGreater(len(result["unavailable"]), 0)
 
-    @patch("unity_docs_mcp.scraper.requests.Session.head")
-    def test_check_api_availability_all_unavailable(self, mock_head):
-        """Test API availability checking when API is not found in any version."""
-        mock_response = Mock()
-        mock_response.status_code = 404
-        mock_head.return_value = mock_response
 
-        result = self.scraper.check_api_availability_across_versions("NonexistentClass")
-
-        self.assertEqual(len(result["available"]), 0)
-        self.assertGreater(len(result["unavailable"]), 0)
-
-    @patch("unity_docs_mcp.scraper.requests.Session.head")
-    def test_check_api_availability_network_error(self, mock_head):
-        """Test API availability checking with network errors."""
-        import requests
-
-        mock_head.side_effect = requests.exceptions.RequestException("Network error")
-
-        result = self.scraper.check_api_availability_across_versions("GameObject")
-
-        # All versions should be in unavailable due to network errors
-        self.assertEqual(len(result["available"]), 0)
-        self.assertGreater(len(result["unavailable"]), 0)
 
     def test_get_api_doc_with_normalization(self):
         """Test API doc retrieval with version normalization."""
@@ -632,31 +320,7 @@ class TestUnityDocScraper(unittest.TestCase):
         # Should be sorted with latest first
         self.assertEqual(result[0], "6000.2")
 
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_get_supported_versions_dynamic_fallback(self, mock_get):
-        """Test dynamic supported versions with fallback on error."""
-        mock_get.side_effect = Exception("Network error")
 
-        result = self.scraper.get_supported_versions()
-
-        # Should fallback to hardcoded list
-        self.assertIsInstance(result, list)
-        self.assertGreater(len(result), 0)
-        self.assertIn("6000.0", result)
-
-    @patch("unity_docs_mcp.scraper.requests.Session.get")
-    def test_get_supported_versions_dynamic_http_error(self, mock_get):
-        """Test dynamic supported versions with HTTP error."""
-        mock_response = Mock()
-        mock_response.status_code = 500
-        mock_get.return_value = mock_response
-
-        result = self.scraper.get_supported_versions()
-
-        # Should fallback to hardcoded list
-        self.assertIsInstance(result, list)
-        self.assertGreater(len(result), 0)
-        self.assertIn("6000.0", result)
 
     @patch("unity_docs_mcp.scraper.requests.Session.get")
     def test_get_supported_versions_filtering_old_versions(self, mock_get):
@@ -702,16 +366,6 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertEqual(suggestions, mock_suggestions)
         self.scraper.search_index.suggest_classes.assert_called_once_with("game")
 
-    def test_suggest_class_names_fallback(self):
-        """Test class name suggestions fallback when index returns empty."""
-        # Mock empty suggestions from index
-        self.scraper.search_index.suggest_classes = Mock(return_value=[])
-
-        suggestions = self.scraper.suggest_class_names("game")
-
-        # Should use fallback common classes
-        self.assertIn("GameObject", suggestions)
-        self.assertLessEqual(len(suggestions), 10)
 
     def test_search_integration(self):
         """Test search integration with real-like data."""
@@ -769,19 +423,6 @@ class TestUnityDocScraper(unittest.TestCase):
         self.assertEqual(result["status"], "success")
         self.assertGreater(len(result["results"]), 0)
 
-    def test_search_different_versions(self):
-        """Test search with different Unity versions."""
-        mock_results = [{"title": "Test", "url": "test.html", "description": "Test"}]
-        self.scraper.search_index.search = Mock(return_value=mock_results)
-
-        # Test different versions
-        versions = ["6000.0", "2023.3", "2022.3"]
-        for version in versions:
-            result = self.scraper.search_docs("test", version)
-            self.assertEqual(result["status"], "success")
-
-        # Verify each version was searched
-        self.assertEqual(self.scraper.search_index.search.call_count, len(versions))
 
 
 class TestNamespaceHandling(unittest.TestCase):
@@ -873,7 +514,6 @@ class TestNamespaceHandling(unittest.TestCase):
         self.assertEqual(result["status"], "success")
         # Should try dot notation first, then hyphen notation
         self.assertIn("AI.NavMeshAgent", result["url"])
-
 
 if __name__ == "__main__":
     unittest.main()

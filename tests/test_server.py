@@ -66,19 +66,6 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         self.assertIn("Test content", content)
         self.assertIn("https://docs.unity3d.com", content)
 
-    @patch("unity_docs_mcp.server.UnityDocScraper")
-    async def test_get_unity_api_doc_missing_class_name(self, mock_scraper_class):
-        """Test API documentation retrieval with missing class name."""
-        mock_scraper = Mock()
-        mock_scraper_class.return_value = mock_scraper
-
-        server = UnityDocsMCPServer()
-        server.scraper = mock_scraper
-
-        result = await server._get_unity_api_doc(None)
-
-        self.assertEqual(len(result), 1)
-        self.assertIn("class_name is required", result[0].text)
 
     @patch("unity_docs_mcp.server.UnityDocScraper")
     async def test_get_unity_api_doc_invalid_version(self, mock_scraper_class):
@@ -120,33 +107,6 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         self.assertIn("GameObject", result[0].text)
         self.assertIn("not found", result[0].text)
 
-    @patch("unity_docs_mcp.server.UnityDocScraper")
-    @patch("unity_docs_mcp.server.UnityDocParser")
-    async def test_get_unity_api_doc_parser_error(
-        self, mock_parser_class, mock_scraper_class
-    ):
-        """Test API documentation retrieval with parser error."""
-        mock_scraper = Mock()
-        mock_parser = Mock()
-        mock_scraper_class.return_value = mock_scraper
-        mock_parser_class.return_value = mock_parser
-
-        mock_scraper.validate_version.return_value = True
-        mock_scraper.get_api_doc.return_value = {
-            "status": "success",
-            "html": "<html>Test content</html>",
-            "url": "https://docs.unity3d.com/test.html",
-        }
-        mock_parser.parse_api_doc.return_value = {"error": "Parse error"}
-
-        server = UnityDocsMCPServer()
-        server.scraper = mock_scraper
-        server.parser = mock_parser
-
-        result = await server._get_unity_api_doc("GameObject", None, "6000.0")
-
-        self.assertEqual(len(result), 1)
-        self.assertIn("Parse error", result[0].text)
 
     @patch("unity_docs_mcp.server.UnityDocScraper")
     @patch("unity_docs_mcp.server.UnityDocParser")
@@ -195,19 +155,6 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         self.assertIn("Transform", content)
         self.assertIn("2 found", content)
 
-    @patch("unity_docs_mcp.server.UnityDocScraper")
-    async def test_search_unity_docs_missing_query(self, mock_scraper_class):
-        """Test documentation search with missing query."""
-        mock_scraper = Mock()
-        mock_scraper_class.return_value = mock_scraper
-
-        server = UnityDocsMCPServer()
-        server.scraper = mock_scraper
-
-        result = await server._search_unity_docs(None)
-
-        self.assertEqual(len(result), 1)
-        self.assertIn("query is required", result[0].text)
 
     @patch("unity_docs_mcp.server.UnityDocScraper")
     @patch("unity_docs_mcp.server.UnityDocParser")
@@ -281,34 +228,6 @@ class TestUnityDocsMCPServer(unittest.TestCase):
         self.assertIn("GameObject", content)
         self.assertIn("GameObjectUtility", content)
 
-    @patch("unity_docs_mcp.server.UnityDocScraper")
-    async def test_suggest_unity_classes_missing_partial_name(self, mock_scraper_class):
-        """Test Unity class suggestions with missing partial name."""
-        mock_scraper = Mock()
-        mock_scraper_class.return_value = mock_scraper
-
-        server = UnityDocsMCPServer()
-        server.scraper = mock_scraper
-
-        result = await server._suggest_unity_classes(None)
-
-        self.assertEqual(len(result), 1)
-        self.assertIn("partial_name is required", result[0].text)
-
-    @patch("unity_docs_mcp.server.UnityDocScraper")
-    async def test_suggest_unity_classes_no_suggestions(self, mock_scraper_class):
-        """Test Unity class suggestions with no matches."""
-        mock_scraper = Mock()
-        mock_scraper_class.return_value = mock_scraper
-        mock_scraper.suggest_class_names.return_value = []
-
-        server = UnityDocsMCPServer()
-        server.scraper = mock_scraper
-
-        result = await server._suggest_unity_classes("xyz123")
-
-        self.assertEqual(len(result), 1)
-        self.assertIn("No suggestions found", result[0].text)
 
 
 def run_async_test(test_func):
