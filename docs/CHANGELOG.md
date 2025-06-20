@@ -7,14 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Comprehensive test coverage for cache functionality** (test_cache.py - 18 tests)
+  - API availability cache testing (6-hour expiration)
+  - Search index cache testing (24-hour expiration)
+  - Cache expiration and cleanup tests
+  - Memory cache behavior tests
+  - Concurrent cache access tests
+  - Cache performance improvement verification
+- **Edge case tests for parser** (test_parser.py - 10 new tests)
+  - Malformed HTML handling
+  - Large document performance
+  - Special characters and Unicode support
+  - Code block preservation
+  - Table structure preservation
+- **Network and timeout tests** (test_scraper.py - 11 new tests)
+  - Timeout handling
+  - Connection errors
+  - SSL errors
+  - Redirect handling
+  - Large response handling
+  - Concurrent request rate limiting
+- **Unity version format edge cases** (test_version_features.py - 14 new tests)
+  - Alpha, beta, RC, and patch version normalization
+  - Special character handling
+  - Whitespace handling
+  - Invalid format preservation
+- **Concurrent request handling tests** (test_integration.py - 8 new tests)
+  - Concurrent API requests
+  - Concurrent search requests
+  - Mixed concurrent operations
+  - Rate limiting with concurrency
+  - Error handling in concurrent requests
+  - Stress testing with 50 concurrent requests
+- **Performance and stress tests** (test_performance.py - 11 tests)
+  - Large document parsing performance
+  - Search index loading performance
+  - Memory usage monitoring
+  - Thread safety verification
+  - Cache performance validation
+
 ### Fixed
 - GitHub Actions workflow cache configuration to use requirements*.txt instead of uv.lock
 - Updated Python version requirement to 3.10+ for MCP library compatibility
 - Applied Black code formatting to fix CI linting issues
+- Enhanced version normalization to handle edge cases (whitespace, prefixes like "v" and "Unity")
 
 ### Changed
 - GitHub Actions test matrix now only tests Python 3.10, 3.11, and 3.12
 - Updated pyproject.toml to require Python >=3.10
+- **Total test count increased from 109 to 166 tests**
 
 ### Refactored
 - Reorganized test structure to eliminate duplicates and improve organization

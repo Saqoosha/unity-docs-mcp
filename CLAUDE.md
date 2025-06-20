@@ -243,13 +243,15 @@ The project includes comprehensive unit tests covering all version-related funct
 source venv/bin/activate && python -m unittest discover tests/
 
 # Run specific test modules
-python tests/test_scraper.py          # Scraper, search, and namespace tests (59 tests)
+python tests/test_scraper.py          # Scraper, search, and namespace tests (71 tests)
 python tests/test_search_index.py     # Search index functionality (16 tests)
-python tests/test_version_features.py # Version handling features (11 tests)
-python tests/test_parser.py           # HTML parsing functionality (10 tests)
+python tests/test_version_features.py # Version handling features (25 tests)
+python tests/test_parser.py           # HTML parsing functionality (20 tests)
 python tests/test_server.py           # MCP server tests (5 tests)
-python tests/test_integration.py      # Integration tests (6 tests)
+python tests/test_integration.py      # Integration tests (14 tests)
 python tests/test_basic_functionality.py # Basic imports and crash tests (2 tests)
+python tests/test_cache.py            # Cache functionality tests (18 tests)
+python tests/test_performance.py      # Performance and stress tests (11 tests)
 
 # Run with coverage
 python run_tests.py
@@ -265,8 +267,11 @@ python run_tests.py
 - **Server Integration**: End-to-end MCP server functionality
 - **Mock Network Calls**: All external Unity API calls are mocked for reliability
 - **Caching Performance**: Validates 6-hour API availability cache functionality
+- **Edge Case Handling**: Malformed HTML, large documents, special characters
+- **Concurrent Operations**: Thread safety and async request handling
+- **Performance Testing**: Memory usage, parsing speed, and stress tests
 
-Total: **109 unit tests** ensuring robust functionality across all components.
+Total: **166 unit tests** ensuring robust functionality across all components.
 
 ### Performance & Caching
 

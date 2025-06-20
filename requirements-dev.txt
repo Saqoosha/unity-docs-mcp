@@ -6,6 +6,7 @@ coverage>=7.0.0
 black>=23.0.0
 flake8>=6.0.0
 mypy>=1.0.0
+psutil>=5.9.0  # For performance monitoring in tests
 
 # Runtime dependencies (also include these for development)
 -r requirements.txt
