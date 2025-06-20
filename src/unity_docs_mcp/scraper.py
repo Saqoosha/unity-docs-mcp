@@ -161,11 +161,11 @@ class UnityDocScraper:
             elif response.status_code == 404:
                 return None  # Page not found
             else:
-                print(f"HTTP {response.status_code} when fetching {url}")
+                # Non-200 status code
                 return None
                 
-        except requests.exceptions.RequestException as e:
-            print(f"Request failed for {url}: {str(e)}")
+        except requests.exceptions.RequestException:
+            # Request failed
             return None
     
     def get_supported_versions(self) -> List[str]:
@@ -226,8 +226,8 @@ class UnityDocScraper:
                     sorted_versions = sorted(all_versions, key=version_key, reverse=True)
                     return sorted_versions
                         
-        except Exception as e:
-            print(f"Failed to fetch supported versions from Unity: {e}")
+        except Exception:
+            # Failed to fetch supported versions from Unity
         
         # Fallback to hardcoded list if dynamic fetching fails
         return [
@@ -270,8 +270,8 @@ class UnityDocScraper:
                             return f"{major}000.{minor}"
                     return version_str
                         
-        except Exception as e:
-            print(f"Failed to fetch latest version from Unity redirect: {e}")
+        except Exception:
+            # Failed to fetch latest version from Unity redirect
         
         # Fallback to hardcoded latest
         supported = self.get_supported_versions()
@@ -311,8 +311,8 @@ class UnityDocScraper:
                 if datetime.now() - cache_time < self.cache_duration:
                     with open(cache_path, 'rb') as f:
                         self._api_cache = pickle.load(f)
-            except Exception as e:
-                print(f"Error loading API cache: {e}")
+            except Exception:
+                # Cache load failed, will re-check
                 self._api_cache = {}
     
     def _save_api_cache(self) -> None:
@@ -321,8 +321,8 @@ class UnityDocScraper:
         try:
             with open(cache_path, 'wb') as f:
                 pickle.dump(self._api_cache, f)
-        except Exception as e:
-            print(f"Error saving API cache: {e}")
+        except Exception:
+            # Cache save failed, non-critical
     
     def _get_cache_key(self, class_name: str, method_name: Optional[str] = None) -> str:
         """Generate cache key for API availability check."""

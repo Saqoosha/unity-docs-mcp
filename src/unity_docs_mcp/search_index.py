@@ -54,8 +54,8 @@ class UnitySearchIndex:
                         self.search_index = cache_data['search_index']
                         self.common_words = cache_data['common_words']
                         return True
-            except Exception as e:
-                print(f"Error loading cache: {e}")
+            except Exception:
+                # Cache load failed, will re-download
         
         return False
     
@@ -75,8 +75,8 @@ class UnitySearchIndex:
             
             with open(cache_path, 'wb') as f:
                 pickle.dump(cache_data, f)
-        except Exception as e:
-            print(f"Error saving cache: {e}")
+        except Exception:
+            # Cache save failed, non-critical
     
     def load_index(self, version: str = "6000.0", force_refresh: bool = False) -> bool:
         """Load search index from Unity documentation."""
@@ -152,8 +152,8 @@ class UnitySearchIndex:
             
             return True
             
-        except Exception as e:
-            print(f"Error loading search index: {str(e)}")
+        except Exception:
+            # Failed to load search index
             return False
     
     def clear_cache(self, version: Optional[str] = None) -> None:

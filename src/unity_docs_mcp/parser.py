@@ -1,8 +1,8 @@
 """HTML parsing utilities for Unity documentation."""
 
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup
 import re
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 from markdownify import markdownify as md
 import trafilatura
 
