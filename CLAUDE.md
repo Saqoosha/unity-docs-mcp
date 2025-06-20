@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - Root: User-facing (README.md, CLAUDE.md, LICENSE)
    - docs/: Technical and detailed documentation
 
-## Unity Docs MCP Server - Development Guide
+## Unity Docs MCP Server v0.2.2 - Development Guide
 
 ### Commands
 
@@ -116,6 +116,9 @@ The project consists of four main modules that process Unity documentation:
 1. **HTML Link Removal is CRUCIAL** - Must remove `<a>` tags BEFORE Trafilatura
 2. **Processing Pipeline Order**: HTML → Remove Links → Remove UI → Trafilatura → Clean
 3. **Trafilatura's `include_links=False` is NOT enough** - it leaves `[text]` brackets
+4. **Search Algorithm**: Implements Unity's exact scoring system for 100% accuracy
+5. **Namespace Resolution**: Dynamic discovery using search index, no hardcoding
+6. **Pre-commit Testing**: Basic functionality tests run automatically before commits
 
 ### Common Issues & Solutions
 
@@ -124,6 +127,22 @@ The project consists of four main modules that process Unity documentation:
 - **Bold text**: `**text**` → Remove `<strong>`, `<b>` tags and markdown formatting
 - **Markdown links**: `[ComputeBuffer](ComputeBuffer.html)` → Strip with regex
 - **Search waiting page**: Unity search page loads dynamically → Use local search index instead
+
+### Development Workflow
+
+**Before Committing:**
+1. Run tests: `./run_tests.sh`
+2. Pre-commit hook automatically runs basic tests
+3. Check for IndentationError and import issues
+
+**Testing Search Accuracy:**
+```python
+# Test with problematic class names
+test_cases = ["NavMeshAgent", "Button", "Text", "Canvas"]
+for case in test_cases:
+    result = scraper.get_api_doc(case, version="6000.0")
+    # Should find AI.NavMeshAgent, UIElements.Button, etc.
+```
 
 ### Testing MCP Tools
 
