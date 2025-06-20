@@ -43,28 +43,52 @@ class UnityDocScraper:
         version = self.normalize_version(version)
         
         try:
-            # Determine URL format based on member type
-            if method_name and member_type:
-                # Use type information to build correct URL immediately
-                use_hyphen = member_type in ['property', 'constructor']
-                url = self._build_api_url(class_name, method_name, version, use_hyphen=use_hyphen)
-                html_content = self._fetch_page(url)
-            elif method_name:
-                # No type info provided, try both formats (old behavior)
-                # First try with dot notation (for methods)
-                url = self._build_api_url(class_name, method_name, version)
-                html_content = self._fetch_page(url)
+            # Try to find the correct URL from search index
+            found_class_name = None
+            if '.' not in class_name:
+                search_results = self.search_index.search(class_name, version, max_results=20)
                 
-                # If that fails, try with hyphen notation (for properties)
-                if not html_content:
-                    property_url = self._build_api_url(class_name, method_name, version, use_hyphen=True)
-                    html_content = self._fetch_page(property_url)
-                    if html_content:
-                        url = property_url  # Update URL to the one that worked
+                # First pass: exact match (no namespace)
+                for result in search_results:
+                    if result.get('type') == 'class':
+                        url_parts = result['url'].split('/')
+                        if url_parts:
+                            filename = url_parts[-1].replace('.html', '')
+                            if filename.lower() == class_name.lower():
+                                found_class_name = filename
+                                break
+                
+                # Second pass: ends with class name (with namespace)
+                if not found_class_name:
+                    for result in search_results:
+                        if result.get('type') == 'class':
+                            url_parts = result['url'].split('/')
+                            if url_parts:
+                                filename = url_parts[-1].replace('.html', '')
+                                if '.' in filename and filename.split('.')[-1].lower() == class_name.lower():
+                                    found_class_name = filename
+                                    break
+            
+            # Use found class name or original
+            actual_class_name = found_class_name if found_class_name else class_name
+            
+            # Build URL with the correct class name
+            if method_name:
+                if member_type:
+                    use_hyphen = member_type in ['property', 'constructor']
+                    url = self._build_api_url(actual_class_name, method_name, version, use_hyphen=use_hyphen)
+                else:
+                    # Try dot notation first, then hyphen
+                    url = self._build_api_url(actual_class_name, method_name, version)
+                    html_content = self._fetch_page(url)
+                    if not html_content:
+                        url = self._build_api_url(actual_class_name, method_name, version, use_hyphen=True)
+                        html_content = self._fetch_page(url)
+                    return {"url": url, "html": html_content, "status": "success"} if html_content else {"error": f"Failed to fetch content from {url}", "status": "error"}
             else:
-                # Just a class name
-                url = self._build_api_url(class_name, None, version)
-                html_content = self._fetch_page(url)
+                url = self._build_api_url(actual_class_name, None, version)
+            
+            html_content = self._fetch_page(url)
             
             if html_content:
                 return {"url": url, "html": html_content, "status": "success"}
@@ -357,10 +381,29 @@ class UnityDocScraper:
         # Test a subset of important versions to avoid too many requests
         test_versions = ["6000.0", "2023.3", "2022.3", "2021.3", "2020.3", "2019.4"]
         
+        # Find the correct class name from search index (same as get_api_doc)
+        found_class_name = None
+        if '.' not in class_name:
+            # Use first version to find the class name
+            search_results = self.search_index.search(class_name, test_versions[0], max_results=20)
+            for result in search_results:
+                if result.get('type') == 'class':
+                    url_parts = result['url'].split('/')
+                    if url_parts:
+                        filename = url_parts[-1].replace('.html', '')
+                        if filename.lower() == class_name.lower():
+                            found_class_name = filename
+                            break
+                        elif '.' in filename and filename.split('.')[-1].lower() == class_name.lower():
+                            found_class_name = filename
+                            break
+        
+        actual_class_name = found_class_name if found_class_name else class_name
+        
         for version in test_versions:
             normalized_version = self.normalize_version(version)
             if self.validate_version(normalized_version):
-                url = self._build_api_url(class_name, method_name, normalized_version)
+                url = self._build_api_url(actual_class_name, method_name, normalized_version)
                 
                 try:
                     response = self.session.head(url, timeout=10)  # HEAD request is faster
