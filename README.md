@@ -2,6 +2,10 @@
 
 Provides Unity documentation access directly in Claude.
 
+**⚠️ Disclaimer**: This is an unofficial community project. Unity Technologies Corp. is not affiliated with and does not endorse or support this project.
+
+[日本語版 README](README_ja.md)
+
 ## Installation
 
 ### Claude Code
