@@ -273,6 +273,7 @@ class UnityDocScraper:
                         
         except Exception:
             # Failed to fetch latest version from Unity redirect
+            pass
         
         # Fallback to hardcoded latest
         supported = self.get_supported_versions()
@@ -324,6 +325,7 @@ class UnityDocScraper:
                 pickle.dump(self._api_cache, f)
         except Exception:
             # Cache save failed, non-critical
+            pass
     
     def _get_cache_key(self, class_name: str, method_name: Optional[str] = None) -> str:
         """Generate cache key for API availability check."""

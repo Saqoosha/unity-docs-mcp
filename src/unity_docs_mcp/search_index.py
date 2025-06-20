@@ -56,6 +56,7 @@ class UnitySearchIndex:
                         return True
             except Exception:
                 # Cache load failed, will re-download
+                pass
         
         return False
     
@@ -77,6 +78,7 @@ class UnitySearchIndex:
                 pickle.dump(cache_data, f)
         except Exception:
             # Cache save failed, non-critical
+            pass
     
     def load_index(self, version: str = "6000.0", force_refresh: bool = False) -> bool:
         """Load search index from Unity documentation."""
