@@ -54,8 +54,9 @@ class UnitySearchIndex:
                         self.search_index = cache_data['search_index']
                         self.common_words = cache_data['common_words']
                         return True
-            except Exception as e:
-                print(f"Error loading cache: {e}")
+            except Exception:
+                # Cache load failed, will re-download
+                pass
         
         return False
     
@@ -75,8 +76,9 @@ class UnitySearchIndex:
             
             with open(cache_path, 'wb') as f:
                 pickle.dump(cache_data, f)
-        except Exception as e:
-            print(f"Error saving cache: {e}")
+        except Exception:
+            # Cache save failed, non-critical
+            pass
     
     def load_index(self, version: str = "6000.0", force_refresh: bool = False) -> bool:
         """Load search index from Unity documentation."""
@@ -152,8 +154,8 @@ class UnitySearchIndex:
             
             return True
             
-        except Exception as e:
-            print(f"Error loading search index: {str(e)}")
+        except Exception:
+            # Failed to load search index
             return False
     
     def clear_cache(self, version: Optional[str] = None) -> None:
@@ -242,44 +244,82 @@ class UnitySearchIndex:
             if not self.load_index(version):
                 return []
         
-        # Process query similar to Unity's JavaScript implementation
-        query = query.strip().lower()
+        # Process query
+        query = query.strip()
+        query_lower = query.lower()
         
-        # Split into terms
-        terms = query.split()
+        # Score pages with improved algorithm
+        page_scores = {}
         
-        # Also search for combined term (no spaces)
-        combined = query.replace(' ', '')
-        if combined != query:
-            terms.append(combined)
-        
-        # Score pages based on term matches
-        scores = defaultdict(float)
-        
-        for term in terms:
-            # Skip common words
-            if term in self.common_words:
-                continue
+        # Phase 1: Look for exact class matches
+        for page_idx, page in enumerate(self.pages):
+            if page_idx < len(self.page_info):
+                page_name = page[0]
+                page_title = page[1] if len(page) > 1 else page_name
+                member_type = self._detect_member_type(page_name)
                 
-            # Exact matches (highest score)
-            if term in self.search_index:
-                for page_idx in self.search_index[term]:
-                    scores[page_idx] += 5.0
-            
-            # Prefix matches (high score)
-            for search_term, indices in self.search_index.items():
-                if search_term.startswith(term) and search_term != term:
-                    for page_idx in indices:
-                        scores[page_idx] += 3.0
-            
-            # Substring matches (lower score)
-            for search_term, indices in self.search_index.items():
-                if term in search_term and not search_term.startswith(term):
-                    for page_idx in indices:
-                        scores[page_idx] += 1.0
+                # Calculate score based on match quality
+                score = 0
+                
+                # Apply Unity's scoring algorithm
+                title_lower = page_title.lower()
+                
+                # Exact match on title (Unity gives +10000)
+                if title_lower == query_lower:
+                    score = 10000
+                
+                # Class name exact match (after namespace)
+                elif member_type == 'class':
+                    # Check if class name part matches exactly
+                    if '.' in page_name:
+                        class_part = page_name.split('.')[-1]
+                        if class_part.lower() == query_lower:
+                            score = 5000  # Very high but less than exact
+                    elif page_name.lower() == query_lower:
+                        score = 5000
+                
+                # Title contains query at word boundary (Unity gives +500 for start/end)
+                elif query_lower in title_lower:
+                    placement = title_lower.index(query_lower)
+                    # At start or after '.' 
+                    if placement == 0 or (placement > 0 and title_lower[placement-1] == '.'):
+                        score = 1500
+                    # At end or before '.'
+                    elif placement + len(query_lower) == len(title_lower) or \
+                         (placement + len(query_lower) < len(title_lower) and title_lower[placement + len(query_lower)] == '.'):
+                        score = 1500
+                    else:
+                        score = 500
+                
+                # Member of a matching class
+                elif '.' in page_name or '-' in page_name:
+                    # Extract base class name
+                    base_name = page_name.split('.')[0] if '.' in page_name else page_name.split('-')[0]
+                    if '.' in base_name:
+                        # Has namespace
+                        class_part = base_name.split('.')[-1]
+                        if class_part.lower() == query_lower:
+                            score = 800 if member_type == 'property' else 700
+                    elif base_name.lower() == query_lower:
+                        score = 850
+                
+                # Partial matches
+                if score == 0:
+                    page_name_lower = page_name.lower()
+                    if query_lower in page_name_lower:
+                        # Boost if it's a word boundary match
+                        if page_name_lower.startswith(query_lower) or f'.{query_lower}' in page_name_lower:
+                            score = 300
+                        elif f'-{query_lower}' in page_name_lower:
+                            score = 250
+                        else:
+                            score = 100
+                
+                if score > 0:
+                    page_scores[page_idx] = score
         
         # Sort by score
-        sorted_results = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        sorted_results = sorted(page_scores.items(), key=lambda x: x[1], reverse=True)
         
         # Build results
         results = []

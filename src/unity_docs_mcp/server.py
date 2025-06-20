@@ -183,7 +183,17 @@ class UnityDocsMCPServer:
                     if version_info["unavailable"]:
                         error_msg += f"\n**Not available in:** {', '.join(version_info['unavailable'])}"
                 else:
-                    error_msg = f"{base_error}\n\nThis API was not found in any tested Unity versions."
+                    # Provide more helpful error message
+                    error_msg = f"{base_error}\n\n"
+                    
+                    # If no namespace in class name, suggest searching
+                    if '.' not in class_name:
+                        error_msg += "**Troubleshooting tips:**\n"
+                        error_msg += f"1. This class might exist in a namespace. Try searching for '{class_name}' to find the full name.\n"
+                        error_msg += f"2. Common Unity namespaces: AI, UI, VFX, Rendering, Audio, etc.\n"
+                        error_msg += f"3. Example: 'NavMeshAgent' is actually 'AI.NavMeshAgent'\n\n"
+                    
+                    error_msg += "**Note:** The API might exist but wasn't found in the tested versions."
                     
             except Exception:
                 # Fallback to basic error if version checking fails

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2025-06-20
+
+### Fixed
+- Unity classes with namespaces (e.g., AI.NavMeshAgent, UI.Button) are now correctly found
+- Improved class resolution using search index for accurate URL discovery
+- Better handling of Unity classes without explicit namespace in user queries
+
+### Improved  
+- Simplified namespace handling without hardcoded mappings
+- More reliable API documentation retrieval for all Unity classes
+- Better error messages suggesting namespace issues when classes are not found
+
 ## [0.2.1] - 2025-06-15
 
 ### Added
