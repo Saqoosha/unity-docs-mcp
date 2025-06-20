@@ -2,6 +2,14 @@
 
 A Model Context Protocol (MCP) server that provides Unity documentation retrieval capabilities. This server allows you to fetch Unity API documentation and search Unity docs directly through MCP-compatible clients.
 
+## Installation (Claude Desktop)
+
+```bash
+claude mcp add unity-docs -s user -- uvx --from git+https://github.com/Saqoosha/unity-docs-mcp unity-docs-mcp
+```
+
+That's it! The Unity Docs MCP server is now available in Claude Desktop.
+
 ## Features
 
 - 🔍 **Fast Local Search**: Search Unity documentation using a local index - no JavaScript execution needed
@@ -16,17 +24,7 @@ A Model Context Protocol (MCP) server that provides Unity documentation retrieva
 - 💾 **Advanced Caching**: Multi-level caching system with 6-hour API availability cache
 - 🧪 **Well Tested**: Comprehensive unit and integration tests (88 total tests)
 
-## Quick Start
-
-### For Claude Desktop Users (Most Common)
-
-#### Using Claude Code CLI (One Command!)
-
-```bash
-claude mcp add unity-docs -s user -- uvx --from git+https://github.com/Saqoosha/unity-docs-mcp unity-docs-mcp
-```
-
-That's it! The Unity Docs MCP server is now available in Claude Desktop.
+## Alternative Installation Methods
 
 ### For Other MCP Clients
 
