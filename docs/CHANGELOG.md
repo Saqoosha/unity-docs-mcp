@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- GitHub Actions workflow cache configuration to use requirements*.txt instead of uv.lock
+- Updated Python version requirement to 3.10+ for MCP library compatibility
+- Applied Black code formatting to fix CI linting issues
+
+### Changed
+- GitHub Actions test matrix now only tests Python 3.10, 3.11, and 3.12
+- Updated pyproject.toml to require Python >=3.10
+
 ## [0.2.2] - 2025-06-20
 
 ### Fixed
