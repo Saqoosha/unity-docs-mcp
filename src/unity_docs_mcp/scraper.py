@@ -228,6 +228,7 @@ class UnityDocScraper:
                         
         except Exception:
             # Failed to fetch supported versions from Unity
+            pass
         
         # Fallback to hardcoded list if dynamic fetching fails
         return [
