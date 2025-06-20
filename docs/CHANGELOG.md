@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Tool help (📋 Use:) in search results now displays for all classes, not just namespaced ones
+- Tool help now shows for properties and methods with correct parameter formatting
+- Improved search result usability by providing copy-paste ready MCP tool commands
+
 ### Changed
 - **Reduced test count from 166 to 80 tests**
   - Streamlined test suite to focus on core functionality
