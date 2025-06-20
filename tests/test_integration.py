@@ -96,10 +96,30 @@ class TestIntegration(unittest.TestCase):
             content,
         )
 
-    @patch("unity_docs_mcp.scraper.UnityDocScraper._fetch_page")
-    async def test_full_search_workflow(self, mock_fetch):
+    @patch("unity_docs_mcp.search_index.UnitySearchIndex.search")
+    async def test_full_search_workflow(self, mock_search):
         """Test complete workflow for searching documentation."""
-        mock_fetch.return_value = self.sample_search_html
+        # Mock search results
+        mock_search.return_value = [
+            {
+                "title": "GameObject",
+                "type": "class",
+                "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.html",
+                "description": "Base class for all entities in Unity Scenes."
+            },
+            {
+                "title": "GameObject.CreatePrimitive",
+                "type": "method",
+                "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.CreatePrimitive.html",
+                "description": "Creates a game object with a primitive mesh renderer and appropriate collider."
+            },
+            {
+                "title": "GameObject.Find",
+                "type": "method",
+                "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject.Find.html",
+                "description": "Finds a GameObject by name and returns it."
+            }
+        ]
 
         # Test the complete workflow
         result = await self.server._search_unity_docs("GameObject", "6000.0")
@@ -126,6 +146,10 @@ class TestIntegration(unittest.TestCase):
         # Verify URLs are included
         self.assertIn(".html", content)
         self.assertIn("https://docs.unity3d.com", content)
+        
+        # Verify tool help is shown for appropriate results (testing our fix)
+        self.assertIn("**📋 Use:**", content)
+        self.assertIn('get_unity_api_doc(class_name: "GameObject"', content)
 
     def test_scraper_parser_integration(self):
         """Test integration between scraper and parser components."""

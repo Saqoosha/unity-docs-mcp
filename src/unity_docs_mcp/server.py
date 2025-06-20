@@ -315,8 +315,20 @@ class UnityDocsMCPServer:
 
             # Extract class name for get_unity_api_doc suggestion
             title = res.get("title", "")
-            if res.get("type") == "class" and "." in title:
-                content += f'**📋 Use:** `get_unity_api_doc(class_name: "{title}", version: "{version}")`\n'
+            result_type = res.get("type", "")
+            
+            # Show tool help for classes, properties, and methods
+            if result_type in ["class", "property", "method", "function"]:
+                # For properties and methods, extract the base class name
+                if result_type in ["property", "method", "function"] and "." in title:
+                    # Split to get class and member names
+                    parts = title.split(".")
+                    class_name = ".".join(parts[:-1])
+                    member_name = parts[-1]
+                    content += f'**📋 Use:** `get_unity_api_doc(class_name: "{class_name}", method_name: "{member_name}", version: "{version}")`\n'
+                else:
+                    # For classes (with or without namespace)
+                    content += f'**📋 Use:** `get_unity_api_doc(class_name: "{title}", version: "{version}")`\n'
 
             if res.get("url"):
                 content += f"**URL:** {res['url']}\n"
